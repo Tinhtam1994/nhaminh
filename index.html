@@ -3223,7 +3223,20 @@ go(ROUTES.includes(h) ? h : 'home');
 window.addEventListener('hashchange', () => { const t = location.hash.slice(1); if (ROUTES.includes(t) && t !== view) go(t); });
 if (!canStore) $('#storageWarn').classList.remove('hidden');
 try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {}
-if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});
+// Cập nhật: kiểm tra bản mới mỗi lần quay lại app; có bản mới thì tải lại ngay,
+// trừ khi đang ở màn ghi chi (hỏi trước để không mất khoản đang nhập)
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  const hadSW = !!navigator.serviceWorker.controller; let reloading = false;
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
+  }).catch(() => {});
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadSW || reloading) return;
+    const busy = view === 'add' && (amountVal() || F.detail);
+    if (!busy) { reloading = true; location.reload(); return; }
+    toast('Có bản mới của Nhà Mình', 'Cập nhật', () => { reloading = true; location.reload(); }, 15000);
+  });
+}
 document.addEventListener('visibilitychange', () => { if (!document.hidden && !$('#layer').innerHTML) { render(); setTimeout(() => dailyAlert(false), 400); } });
 if (!importing) setTimeout(() => dailyAlert(false), 600);
 })();

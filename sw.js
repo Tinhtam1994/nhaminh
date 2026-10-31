@@ -1,9 +1,10 @@
 // Nhà Mình – service worker: chạy offline, tự cập nhật ở lần mở sau
-const CACHE = 'nha-minh-v1793446888';
+const CACHE = 'nha-minh-v1793447147';
 const SHELL = ['./', './index.html', './exceljs.min.js', './manifest.webmanifest', './apple-touch-icon.png', './icon-192.png', './icon-512.png', ...['an-uong','con-cai','dich-vu-sinh-hoat','di-lai','qua-tang','mua-sam','y-te','giao-duc','giai-tri','nha-o','hoa-don','tiet-kiem','du-lich','luong','dau-tu','lam-dep','thu-cung','the-thao','cong-viec','khac'].map(s => './icons/' + s + '.webp')];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  // cache:'reload' để luôn lấy tệp mới từ máy chủ, không dùng bản cũ trong bộ nhớ tạm của trình duyệt
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL.map(u => new Request(u, {cache:'reload'})))).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
