@@ -334,12 +334,17 @@ input,select,textarea,.inp{font-size:16px}
 /* Màn thêm khoản chi/thu: bàn phím số ghim cứng ở đáy màn hình; chiều cao phím (--kh) do fitPad() tính theo khoảng trống còn lại */
 body.focus #v-add .padbox{position:fixed;left:0;right:0;bottom:0;z-index:6;max-width:480px;margin:0 auto;padding:2px 16px calc(10px + env(safe-area-inset-bottom));background:var(--bg)}
 #v-add .keys2{grid-template-rows:repeat(4,var(--kh,44px))}
+body.focus .app{padding-bottom:0}
 #v-add .keys2 .kp{height:auto;min-height:0}
 /* Đang gõ ghi chú: ẩn bàn phím số để không chồng với bàn phím iPhone */
 body.typing #v-add .padbox{display:none}
 /* Thứ tự: Ngày, Quỹ → Danh mục → Phân loại → Nội dung; ghim đáy: Số tiền, gợi ý, bàn phím */
 #v-add .picks{margin:2px 0 0}
 #v-add .amtrow{margin:6px 2px 5px}
+/* Ô số tiền to, dễ nhìn */
+#v-add .amtbox{min-height:56px;border-radius:18px}
+#v-add .amtbox #amountTxt{font-size:32px}
+#v-add .amtbox .cur{font-size:24px}
 #v-add .amtrow:has(.paywith:not(.hidden)) #hint1000{display:none}
 #v-add .padbox .qamt{margin-top:8px}
 /* Danh mục gọn */
@@ -355,7 +360,7 @@ body.typing #v-add .padbox{display:none}
   #v-add .catrow{margin-bottom:8px}
 }
 @media (min-height:860px){
-  #v-add .amtbox{min-height:60px} #v-add .amtbox #amountTxt{font-size:32px}
+  #v-add .amtbox{min-height:72px;padding:6px 14px 6px 18px} #v-add .amtbox #amountTxt{font-size:44px} #v-add .amtbox .cur{font-size:28px} #v-add .amtbox #exprTxt{font-size:13.5px}
   #v-add .lv{padding:11px 4px} #v-add .lv span{font-size:15.5px}
   #v-add .notecard{padding:10px 12px} #v-add .pk{padding:10px 12px} #v-add .pk b{font-size:15px}
   #v-add .qamt button{padding:10px 0;font-size:15px} #v-add .keys2 .kp{font-size:26px}
