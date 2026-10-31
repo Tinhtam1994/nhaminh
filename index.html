@@ -331,18 +331,28 @@ input,select,textarea,.inp{font-size:16px}
 .grid2>*{min-width:0}
 .inp[type=date],.inp[type=time],.inp[type=month]{-webkit-appearance:none;appearance:none;min-width:0;display:block;text-align:left;line-height:41px}
 .app,.sheet{overflow-x:clip}
-/* Màn ghi chi: chiếm đúng chiều cao màn hình, bàn phím số ghim đáy và giãn theo máy */
-body.focus #v-add:not(.hidden){display:flex;flex-direction:column;min-height:calc(100dvh - 14px - env(safe-area-inset-bottom))}
-#v-add .padbox{flex:1 0 auto;display:flex;flex-direction:column;justify-content:flex-end}
-#v-add .keys2{flex:1 0 auto;max-height:330px;grid-template-rows:repeat(4,minmax(40px,1fr))}
-#v-add .keys2 .kp{height:auto;min-height:40px}
+/* Màn thêm khoản chi/thu: bàn phím số ghim cứng ở đáy màn hình; chiều cao phím (--kh) do fitPad() tính theo khoảng trống còn lại */
+body.focus #v-add .padbox{position:fixed;left:0;right:0;bottom:0;z-index:6;max-width:480px;margin:0 auto;padding:2px 16px calc(10px + env(safe-area-inset-bottom));background:var(--bg)}
+#v-add .keys2{grid-template-rows:repeat(4,var(--kh,44px))}
+#v-add .keys2 .kp{height:auto;min-height:0}
 /* Đang gõ ghi chú: ẩn bàn phím số để không chồng với bàn phím iPhone */
 body.typing #v-add .padbox{display:none}
+/* Thứ tự: Ngày, Quỹ → Danh mục → Phân loại → Nội dung; ghim đáy: Số tiền, gợi ý, bàn phím */
+#v-add .picks{margin:2px 0 0}
+#v-add .amtrow{margin:6px 2px 5px}
+#v-add .amtrow:has(.paywith:not(.hidden)) #hint1000{display:none}
+#v-add .padbox .qamt{margin-top:8px}
+/* Danh mục gọn */
+#v-add .catrow{gap:6px}
+#v-add .ct{padding:5px 1px 4px;gap:1px;border-radius:14px;font-size:10.5px}
+#v-add .ct .ci{width:24px;height:24px}
+#v-add .ct .em{font-size:19px;line-height:25px;height:25px}
+#v-add .ct.more .em{width:25px;height:25px;font-size:12px}
 @media (max-height:720px){
   body.focus #v-add .titlebar{padding-top:calc(6px + env(safe-area-inset-top));padding-bottom:4px}
-  #v-add .lbl2:has(#amtLbl){display:none}
-  #v-add .padbox .lbl2:has(.paywith.hidden){display:none}
-  #v-add .padbox .lbl2{margin-top:6px}
+  #v-add .amtrow:has(.paywith.hidden){display:none}
+  #v-add #lvWrap .lbl2{display:none}
+  #v-add .catrow{margin-bottom:8px}
 }
 @media (min-height:860px){
   #v-add .amtbox{min-height:60px} #v-add .amtbox #amountTxt{font-size:32px}
@@ -708,7 +718,11 @@ nav.tabs .fab svg{width:28px;height:28px}
   <section id="v-add" class="hidden">
     <div class="titlebar" style="grid-template-columns:40px 1fr auto"><button class="iconbtn ghost" data-go="back" aria-label="Quay lại"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg></button><h1 id="addTitle">Thêm khoản chi</h1><button class="btn-s" id="modeBtn" style="justify-self:end;padding:7px 12px;box-shadow:var(--shadow)">⇄ Thu</button></div>
     <div id="missBanner"></div>
-    <div class="lbl2"><span id="catLbl">Danh mục</span><button class="link" id="catAll">Xem tất cả ›</button></div>
+    <div class="picks">
+      <div class="pk" id="dateCard" role="button" tabindex="0" style="cursor:pointer"><span class="nic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></span><span class="pb"><small id="dateLbl">Ngày chi</small><b id="dateTxt">Hôm nay</b></span><input type="date" id="dateInp" aria-label="Ngày chi"></div>
+      <button class="pk" id="fundBtn"><span class="nic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H18a1 1 0 0 1 1 1v2"/><rect x="4" y="8" width="16" height="11" rx="2.5"/><path d="M15 11h5v5h-5a2.5 2.5 0 0 1 0-5z"/></svg></span><span class="pb"><small>Từ quỹ</small><b id="fundTxt">EVERYDAY</b><span id="fundLeft"></span></span></button>
+    </div>
+    <div class="lbl2"><span id="catLbl">Danh mục</span></div>
     <div class="catrow" id="catRow"></div>
     <div id="lvWrap">
       <div class="lbl2"><span>Phân loại chi tiêu</span></div>
@@ -718,15 +732,10 @@ nav.tabs .fab svg{width:28px;height:28px}
         <button class="lv I" data-lv="I"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg><span>Lãng phí<small id="lvIhint">HẠN CHẾ</small></span></button>
       </div>
     </div>
-    <div class="lbl2"><span id="amtLbl">Số tiền</span><span class="muted" id="hint1000" style="font-size:11.5px;font-weight:700"></span></div>
-    <div class="amtbox empty" id="amountBox"><span class="v"><span id="amountTxt">0</span><small id="exprTxt"></small></span><button class="x" id="amtClear" aria-label="Xóa số tiền">✕</button><span class="cur">đ</span></div>
-    <label class="notecard"><span class="nic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg></span><span class="nb"><small>Ghi chú (tùy chọn) <span class="ai hidden" id="aiLine"></span></small><input id="detail" placeholder="Ví dụ: Ăn trưa với đồng nghiệp" autocomplete="off" enterkeyhint="done"></span><button class="x hidden" id="detailClear" aria-label="Xóa ghi chú">✕</button></label>
-    <div class="picks">
-      <div class="pk" id="dateCard" role="button" tabindex="0" style="cursor:pointer"><span class="nic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></span><span class="pb"><small id="dateLbl">Ngày chi</small><b id="dateTxt">Hôm nay</b></span><input type="date" id="dateInp" aria-label="Ngày chi"></div>
-      <button class="pk" id="fundBtn"><span class="nic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H18a1 1 0 0 1 1 1v2"/><rect x="4" y="8" width="16" height="11" rx="2.5"/><path d="M15 11h5v5h-5a2.5 2.5 0 0 1 0-5z"/></svg></span><span class="pb"><small>Từ quỹ</small><b id="fundTxt">EVERYDAY</b><span id="fundLeft"></span></span></button>
-    </div>
+    <label class="notecard"><span class="nic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg></span><span class="nb"><small><span id="noteLbl">Nội dung chi</span> <span class="ai hidden" id="aiLine"></span></small><input id="detail" placeholder="Ví dụ: Ăn trưa với đồng nghiệp" autocomplete="off" enterkeyhint="done"></span><button class="x hidden" id="detailClear" aria-label="Xóa ghi chú">✕</button></label>
     <div class="padbox" id="padbox">
-    <div class="lbl2"><span>Gợi ý nhanh</span><button class="paywith hidden" id="payWith"></button></div>
+    <div class="lbl2 amtrow"><span id="amtLbl">Số tiền</span><span class="muted" id="hint1000" style="font-size:11.5px;font-weight:700"></span><button class="paywith hidden" id="payWith"></button></div>
+    <div class="amtbox empty" id="amountBox"><span class="v"><span id="amountTxt">0</span><small id="exprTxt"></small></span><button class="x" id="amtClear" aria-label="Xóa số tiền">✕</button><span class="cur">đ</span></div>
     <div class="qamt" id="qamt"></div>
     <div class="keys2" id="keys">
       <button class="kp" data-k="1">1</button><button class="kp" data-k="2">2</button><button class="kp" data-k="3">3</button><button class="kp del" data-k="back" aria-label="Xóa 1 số"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5H9l-6 7 6 7h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z"/><path d="M17 9l-5 6M12 9l5 6"/></svg></button>
@@ -1414,11 +1423,22 @@ function renderPayWith(){
   const c = cardById(F.card); el.classList.remove('hidden'); el.classList.toggle('on', !!c);
   el.textContent = c ? `Trả bằng 💳 ${c.name}` : 'Trả bằng 💵 Tiền / TK';
 }
+// Tính chiều cao phím để bàn phím ghim đáy vừa khít phần còn trống dưới ô Ngày/Quỹ
+function fitPad(){
+  if (view !== 'add' || document.body.classList.contains('typing')) return;
+  const pad = $('#padbox'), k0 = $('#keys .kp'); if (!pad || !k0) return;
+  const over = pad.offsetHeight - 4 * k0.offsetHeight; // phần không phải phím: nhãn, gợi ý, khoảng cách, vùng an toàn
+  const top = $('#v-add .notecard').getBoundingClientRect().bottom + window.scrollY + 8;
+  const kh = Math.max(40, Math.min(78, Math.floor((window.innerHeight - top - over) / 4)));
+  document.documentElement.style.setProperty('--kh', kh + 'px');
+  $('#v-add').style.paddingBottom = pad.offsetHeight + 'px';
+}
+['resize', 'orientationchange'].forEach(ev => window.addEventListener(ev, () => requestAnimationFrame(fitPad)));
 function renderAdd(){
   const inn = F.mode === 'in';
   $('#modeBtn').textContent = inn ? '⇄ Chi' : '⇄ Thu';
   $('#addTitle').textContent = inn ? 'Thêm khoản thu' : 'Thêm khoản chi';
-  $('#lvWrap').classList.toggle('hidden', inn); $('#fundBtn').classList.toggle('hidden', inn); $('#catAll').classList.toggle('hidden', inn);
+  $('#lvWrap').classList.toggle('hidden', inn); $('#fundBtn').classList.toggle('hidden', inn); $('#noteLbl').textContent = inn ? 'Nội dung thu' : 'Nội dung chi';
   $('#v-add .picks').style.gridTemplateColumns = inn ? '1fr' : '';
   $('#catLbl').textContent = inn ? 'Nguồn thu' : 'Danh mục'; $('#dateLbl').textContent = inn ? 'Ngày nhận' : 'Ngày chi';
   $('#detail').placeholder = inn ? 'Ví dụ: Lương tháng 10' : 'Ví dụ: Ăn trưa với đồng nghiệp';
@@ -1428,6 +1448,7 @@ function renderAdd(){
   $('#hint1000').textContent = S.settings.auto1000 ? 'gõ 35 = 35.000đ' : ''; $('#amtLbl').textContent = inn ? 'Số tiền thu' : 'Số tiền';
   $('#qamt').innerHTML = QAMT.map(v => `<button data-qa="${v}">${shortMoney(v)}</button>`).join('');
   renderAmount(); renderSugs(); renderMeta(); renderPayWith();
+  requestAnimationFrame(fitPad);
 }
 function saveNow(){
   vibe();
@@ -2632,14 +2653,13 @@ let detailPoll = null;
 $('#detail').addEventListener('focus', () => { clearInterval(detailPoll); detailPoll = setInterval(onDetailChange, 300); });
 $('#detail').addEventListener('blur', () => { clearInterval(detailPoll); onDetailChange(); if (F.detail && !F.type) autoClassify(); });
 $('#detail').addEventListener('focus', () => document.body.classList.add('typing'));
-$('#detail').addEventListener('blur', () => setTimeout(() => { if (document.activeElement !== $('#detail')) document.body.classList.remove('typing'); }, 80));
+$('#detail').addEventListener('blur', () => setTimeout(() => { if (document.activeElement !== $('#detail')) { document.body.classList.remove('typing'); requestAnimationFrame(fitPad); } }, 80));
 $('#detail').onkeydown = e => { if (e.key === 'Enter') { e.target.blur(); if (amountVal() && (F.mode === 'in' || F.level)) saveNow(); } };
 $('#detailClear').onclick = () => { F.detail = ''; F.typed = false; $('#detail').value = ''; $('#detailClear').classList.add('hidden'); renderSugs(); };
 $('#catRow').onclick = e => {
   const sb = e.target.closest('[data-src]'); if (sb) { vibe(); F.src = sb.dataset.src; const last = S.inc.filter(i => i.source === F.src).sort((a, b) => b.date.localeCompare(a.date))[0]; if ((!amountVal() || F.prefill) && last) { F.expr = String(last.amount); F.prefill = true; } renderAdd(); return; }
   if (e.target.closest('#catMore')) return openCatPicker(null);
   const b = e.target.closest('[data-cat]'); if (!b) return; vibe(); F.typeManual = true; $('#aiLine').classList.add('hidden'); setType(b.dataset.cat); };
-$('#catAll').onclick = () => openCatPicker(null);
 $('#modeBtn').onclick = () => { F.mode = F.mode === 'in' ? 'out' : 'in'; F.expr = ''; renderAdd(); };
 $('#fundBtn').onclick = () => openFundPicker();
 $('#payWith').onclick = () => { vibe(); const ids = [null].concat((S.cards || []).map(c => c.id)); F.card = ids[(ids.indexOf(F.card || null) + 1) % ids.length]; S.lastCard = F.card; save(); renderPayWith(); };
