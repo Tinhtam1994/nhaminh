@@ -9,6 +9,16 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Nhà Mình">
+<!-- Ảnh khởi động: iPhone hiện ngay khi chạm biểu tượng, thay cho màn trắng lúc đang tải -->
+<link rel="apple-touch-startup-image" href="splash/splash-1320x2868.png" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="splash/splash-1206x2622.png" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="splash/splash-1290x2796.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="splash/splash-1179x2556.png" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="splash/splash-1284x2778.png" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="splash/splash-1170x2532.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="splash/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="splash/splash-828x1792.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+<link rel="apple-touch-startup-image" href="splash/splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
 <meta name="description" content="Nhà Mình – ghi chi tiêu siêu nhanh, chia quỹ và xuất Excel">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -139,6 +149,19 @@ svg{display:block}
 .mpick b{font-size:16px;font-weight:800;min-width:132px;text-align:center}
 .mpick button{width:32px;height:32px;border-radius:50%;border:0;background:var(--card);box-shadow:var(--shadow);display:grid;place-items:center}
 .mpick button svg{width:16px;height:16px}
+/* Màn chào khi mở app */
+#splash{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding-bottom:6vh;transition:opacity .35s ease,visibility .35s}
+#splash img{width:116px;height:116px;border-radius:30px;box-shadow:0 16px 36px rgba(15,90,80,.22);margin-bottom:18px;animation:spIn .6s cubic-bezier(.2,.8,.2,1) both}
+#splash b{font-size:32px;font-weight:900;color:#1A6E63;letter-spacing:-.01em;animation:spUp .5s .12s both}
+#splash small{font-size:15.5px;color:var(--muted);font-weight:700;animation:spUp .5s .2s both}
+#splash .dots{display:flex;gap:7px;margin-top:26px}
+#splash .dots span{width:7px;height:7px;border-radius:50%;background:#1A6E63;opacity:.25;animation:spDot 1s infinite}
+#splash .dots span:nth-child(2){animation-delay:.15s} #splash .dots span:nth-child(3){animation-delay:.3s}
+#splash.out{opacity:0;visibility:hidden}
+@keyframes spIn{from{transform:scale(.72);opacity:0}}
+@keyframes spUp{from{transform:translateY(8px);opacity:0}}
+@keyframes spDot{40%{opacity:1;transform:translateY(-3px)}}
+@media (prefers-reduced-motion:reduce){#splash *{animation:none!important}}
 /* Tài sản khác: thẻ tổng + thẻ từng tài sản nổi bật */
 .lsum.asum{display:block;color:#fff;background:linear-gradient(140deg,#9A3412,#7C2D12)}
 .lsum.asum .big2{font-size:30px;font-weight:900;margin:2px 0 4px}
@@ -707,6 +730,7 @@ nav.tabs .fab svg{width:28px;height:28px}
 </script>
 </head>
 <body>
+<div id="splash" aria-hidden="true"><img src="icon-512.png" alt=""><b>Nhà Mình</b><small>Quản lý tài chính gia đình</small><i class="dots"><span></span><span></span><span></span></i></div>
 <div class="app">
   <div id="storageWarn" class="warn hidden">Trình duyệt đang chặn lưu dữ liệu. Vào Cài đặt → Sao lưu để không mất số liệu.</div>
 
@@ -3338,6 +3362,10 @@ const importing = importFromHash();
 go(ROUTES.includes(h) ? h : 'home');
 window.addEventListener('hashchange', () => { const t = location.hash.slice(1); if (ROUTES.includes(t) && t !== view) go(t); });
 if (!canStore) $('#storageWarn').classList.remove('hidden');
+// Màn chào: hiện tối thiểu 0,9 giây từ lúc mở rồi mờ dần (bỏ qua khi chạy kiểm thử tự động; ?splash=1 giữ nguyên để chụp ảnh khởi động)
+(() => { const sp = $('#splash'); if (!sp || /splash=1/.test(location.search)) return;
+  if (navigator.webdriver) { sp.remove(); return; }
+  setTimeout(() => { sp.classList.add('out'); setTimeout(() => sp.remove(), 400); }, Math.max(0, 900 - performance.now())); })();
 try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {}
 // Cập nhật: kiểm tra bản mới mỗi lần quay lại app; có bản mới thì tải lại ngay,
 // trừ khi đang ở màn ghi chi (hỏi trước để không mất khoản đang nhập)
