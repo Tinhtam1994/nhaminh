@@ -139,6 +139,10 @@ svg{display:block}
 .mpick b{font-size:16px;font-weight:800;min-width:132px;text-align:center}
 .mpick button{width:32px;height:32px;border-radius:50%;border:0;background:var(--card);box-shadow:var(--shadow);display:grid;place-items:center}
 .mpick button svg{width:16px;height:16px}
+/* Tiêu đề + hàng tab đứng yên khi cuộn */
+.stickhead{position:sticky;top:0;z-index:5;background:var(--bg);margin:0 -16px;padding:0 16px 2px}
+.stickhead.scrolled{box-shadow:0 6px 12px -10px rgba(0,0,0,.25)}
+.stickhead .titlebar{position:static}
 .segment{display:grid;grid-template-columns:1fr 1fr;background:var(--soft);border-radius:999px;padding:4px;margin-bottom:12px}
 .segment button{border:0;background:transparent;border-radius:999px;padding:9px 0;font-weight:800;font-size:14px;color:var(--muted)}
 .segment button.on{background:var(--primary-deep);color:var(--on-primary);box-shadow:0 4px 12px color-mix(in srgb,var(--primary-deep) 25%,transparent)}
@@ -320,6 +324,8 @@ nav.tabs button:focus{outline:none}
 #v-add .pk>.nic{display:grid;place-items:center;align-self:center}
 #v-add .pk>.pb{display:flex;color:inherit;font-size:inherit}
 #v-add #dateCard input[type=date]{pointer-events:none}
+/* iPhone chỉ mở bộ chọn ngày khi chạm trực tiếp vào ô: phủ ô ngày trong suốt lên cả thẻ */
+.ios #v-add #dateCard input[type=date]{pointer-events:auto;opacity:.011;z-index:2;font-size:16px;-webkit-appearance:none;appearance:none}
 #v-add .pk #fundLeft{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #v-add .pk b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .qamt{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
@@ -709,9 +715,11 @@ nav.tabs .fab svg{width:28px;height:28px}
 
   <!-- ================= GIAO DỊCH ================= -->
   <section id="v-tx" class="hidden">
+    <div class="stickhead">
     <div class="titlebar"><span></span><h1>Thu chi</h1><button class="iconbtn ghost" data-go="add" aria-label="Thêm khoản chi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
     <div class="mpick"><button data-mv="-1" aria-label="Tháng trước"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button><b class="mlabel"></b><button data-mv="1" aria-label="Tháng sau"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button></div>
     <div class="segment" id="txSeg" style="grid-template-columns:repeat(3,1fr)"><button data-seg="ov" class="on">Tổng quan</button><button data-seg="ls">Danh sách</button><button data-seg="st">Thu & quỹ</button></div>
+    </div>
     <div id="txOv">
       <div class="card" id="sumCard"></div>
       <div class="card"><h3>Theo danh mục</h3><div id="catBars"></div></div>
@@ -771,6 +779,7 @@ nav.tabs .fab svg{width:28px;height:28px}
 
   <!-- ================= MỤC TIÊU ================= -->
   <section id="v-goal" class="hidden">
+    <div class="stickhead">
     <div class="titlebar"><span></span><h1 id="goalTitle">Mục tiêu năm <span id="ylabel"></span></h1><button class="iconbtn ghost" id="goalAdd" aria-label="Tạo mục tiêu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
     <div class="tabs5" id="goalSeg">
       <button class="on" data-gseg="nw"><span class="ti" data-fi="wallet"></span>Tổng</button>
@@ -778,6 +787,7 @@ nav.tabs .fab svg{width:28px;height:28px}
       <button data-gseg="gold"><span class="ti" data-fi="gold"></span>Vàng bạc</button>
       <button data-gseg="asset"><span class="ti" data-fi="house"></span>Tài sản</button>
       <button data-gseg="loan"><span class="ti" data-fi="bank"></span>Khoản vay</button></div>
+    </div>
     <div id="nwPane"></div>
     <div id="savePane" class="hidden"><div id="saveSum"></div><div id="saveList"></div>
       <button class="newgoal" data-new="save"><span class="pl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span><span><b>Thêm sổ tiết kiệm</b><small>Gửi online hoặc tại quầy</small></span></button></div>
@@ -802,8 +812,10 @@ nav.tabs .fab svg{width:28px;height:28px}
 
   <!-- ================= KẾ HOẠCH ================= -->
   <section id="v-plan" class="hidden">
+    <div class="stickhead">
     <div class="titlebar"><span></span><h1 id="planTitle">Ngân sách tháng</h1><button class="iconbtn ghost" id="planAdd" aria-label="Thêm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
     <div class="segment" id="planSeg" style="grid-template-columns:repeat(3,1fr)"><button class="on" data-pseg="budget">Ngân sách</button><button data-pseg="accum">Tích lũy</button><button data-pseg="year">Mục tiêu năm</button></div>
+    </div>
     <div id="budgetPane">
       <div class="mpick"><button data-mv="-1" aria-label="Tháng trước"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button><b class="mlabel"></b><button data-mv="1" aria-label="Tháng sau"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button></div>
       <div id="budgetBody"></div>
@@ -1457,6 +1469,8 @@ function fitPad(){
   $('#v-add').style.paddingBottom = pad.offsetHeight + 'px';
 }
 ['resize', 'orientationchange'].forEach(ev => window.addEventListener(ev, () => requestAnimationFrame(fitPad)));
+// Bóng mờ dưới khối ghim khi trang đã cuộn
+window.addEventListener('scroll', () => { const on = window.scrollY > 4; $$('.stickhead').forEach(h => h.classList.toggle('scrolled', on)); }, {passive:true});
 function renderAdd(){
   const inn = F.mode === 'in';
   $('#modeBtn').textContent = inn ? '⇄ Chi' : '⇄ Thu';
@@ -2687,8 +2701,8 @@ $('#modeBtn').onclick = () => { F.mode = F.mode === 'in' ? 'out' : 'in'; F.expr 
 $('#fundBtn').onclick = () => openFundPicker();
 $('#payWith').onclick = () => { vibe(); const ids = [null].concat((S.cards || []).map(c => c.id)); F.card = ids[(ids.indexOf(F.card || null) + 1) % ids.length]; S.lastCard = F.card; save(); renderPayWith(); };
 // Bấm cả thẻ để mở lịch (trình duyệt máy tính không mở lịch khi bấm vào ô ẩn)
-$('#dateCard').onclick = e => { const i = $('#dateInp'); try { if (i.showPicker) { i.showPicker(); return; } } catch (er) {} i.focus(); i.click(); };
-$('#dateInp').onchange = e => { F.date = e.target.value && e.target.value !== today() ? e.target.value : null; renderAdd(); };
+$('#dateCard').onclick = e => { if (isIOS) return; const i = $('#dateInp'); try { if (i.showPicker) { i.showPicker(); return; } } catch (er) {} i.focus(); i.click(); };
+$('#dateInp').onchange = $('#dateInp').oninput = e => { F.date = e.target.value && e.target.value !== today() ? e.target.value : null; renderAdd(); };
 document.addEventListener('keydown', e => {
   if (view !== 'add' || /INPUT|SELECT/.test(e.target.tagName) || $('#layer').innerHTML) return;
   if (/^\d$/.test(e.key)) key(e.key); else if (e.key === 'Backspace') key('back'); else if (e.key === '+') key('+'); else if (e.key === '-') key('−'); else if (e.key === '*' || e.key === 'x') key('×'); else if (e.key === '=') key('=');
@@ -2845,6 +2859,7 @@ $('#impFile').onchange = e => { const f = e.target.files[0]; if (f) importExcel(
 
 /* Lưu file: iPhone mở bảng Chia sẻ (Lưu vào Tệp, Zalo, Mail…); máy tính tải xuống */
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+document.documentElement.classList.toggle('ios', isIOS);
 async function saveFile(blob, name){
   const file = new File([blob], name, {type:blob.type});
   if (isIOS && navigator.canShare && navigator.canShare({files:[file]})) {
