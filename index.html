@@ -680,6 +680,18 @@ nav.tabs .fab svg{width:28px;height:28px}
 .toast button{white-space:nowrap}
 .toast button{pointer-events:auto;border:0;background:transparent;color:var(--yellow);font-weight:900}
 .warn{background:var(--out-soft);color:var(--out);border-radius:12px;padding:9px 12px;font-size:13px;margin:8px 0;font-weight:700}
+.hl{outline:3px solid var(--primary-deep);outline-offset:3px;border-radius:16px;animation:hlp .65s ease-in-out 4}
+@keyframes hlp{50%{outline-color:transparent}}
+.askhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.askhead h2{margin:0}
+.asklog{display:flex;flex-direction:column;gap:10px;min-height:38dvh;padding-bottom:8px}
+.bub{max-width:90%;padding:10px 13px;border-radius:18px;font-size:15px;line-height:1.45;font-weight:600}
+.bub.me{align-self:flex-end;background:var(--primary-deep);color:var(--on-primary);border-bottom-right-radius:6px}
+.bub.bot{align-self:flex-start;background:var(--card);box-shadow:var(--shadow);border-bottom-left-radius:6px}
+.askacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}.askacts .btn-s{box-shadow:var(--shadow);font-size:13.5px;padding:8px 12px}
+.askq{display:flex;flex-direction:column;align-items:flex-start;gap:5px;margin-top:9px}.askq small{color:var(--muted);font-weight:700;font-size:12px}
+.askq button{border:1.5px solid var(--mint);background:var(--mint-soft);color:var(--primary-ink);border-radius:14px;padding:7px 11px;font-size:13.5px;font-weight:700;text-align:left}
+.askin{position:sticky;bottom:calc(-18px - env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr auto;gap:8px;background:var(--bg);margin:0 -16px calc(-18px - env(safe-area-inset-bottom));padding:8px 16px calc(12px + env(safe-area-inset-bottom))}
+.askin .btn{width:auto;padding:0 18px}
 </style>
 <script>
 /* Ngũ hành – design tokens. Màu Primary/Light/Soft cố định theo bảng; các token phụ được tính để bảo đảm tương phản. */
@@ -738,7 +750,7 @@ nav.tabs .fab svg{width:28px;height:28px}
   <section id="v-home">
     <div class="brandbar">
       <div class="brand"><span class="mk" data-mark="logo"></span><div><b>Nhà Mình</b><small>Quản lý tài chính gia đình</small></div></div>
-      <div class="row"><button class="streak" id="streak" data-go="stat">🔥 0</button><button class="iconbtn" data-go="set" aria-label="Cài đặt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></div>
+      <div class="row"><button class="streak" id="streak" data-go="stat">🔥 0</button><button class="iconbtn" data-ask="1" aria-label="Hỏi trợ lý"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1 1 21 12z"/><path d="M9.6 9.6a2.4 2.4 0 1 1 3.4 2.2c-.6.3-1 .8-1 1.4v.3"/><path d="M12 16.4h.01"/></svg></button><button class="iconbtn" data-go="set" aria-label="Cài đặt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></div>
     </div>
     <div class="hello2"><h2 id="helloName">Chào bạn 👋</h2><p id="helloSub">Cùng quản lý tài chính gia đình tốt hơn mỗi ngày nhé.</p></div>
     <div id="homeBanner"></div>
@@ -751,7 +763,7 @@ nav.tabs .fab svg{width:28px;height:28px}
   <!-- ================= GIAO DỊCH ================= -->
   <section id="v-tx" class="hidden">
     <div class="stickhead">
-    <div class="titlebar"><span></span><h1>Thu chi</h1><button class="iconbtn ghost" data-go="add" aria-label="Thêm khoản chi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
+    <div class="titlebar"><button class="iconbtn ghost" data-ask="1" aria-label="Hỏi trợ lý"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1 1 21 12z"/><path d="M9.6 9.6a2.4 2.4 0 1 1 3.4 2.2c-.6.3-1 .8-1 1.4v.3"/><path d="M12 16.4h.01"/></svg></button><h1>Thu chi</h1><button class="iconbtn ghost" data-go="add" aria-label="Thêm khoản chi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
     <div class="mpick"><button data-mv="-1" aria-label="Tháng trước"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button><b class="mlabel"></b><button data-mv="1" aria-label="Tháng sau"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button></div>
     <div class="segment" id="txSeg" style="grid-template-columns:repeat(3,1fr)"><button data-seg="ov" class="on">Tổng quan</button><button data-seg="ls">Danh sách</button><button data-seg="st">Thu & quỹ</button></div>
     </div>
@@ -815,7 +827,7 @@ nav.tabs .fab svg{width:28px;height:28px}
   <!-- ================= MỤC TIÊU ================= -->
   <section id="v-goal" class="hidden">
     <div class="stickhead">
-    <div class="titlebar"><span></span><h1 id="goalTitle">Mục tiêu năm <span id="ylabel"></span></h1><button class="iconbtn ghost" id="goalAdd" aria-label="Tạo mục tiêu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
+    <div class="titlebar"><button class="iconbtn ghost" data-ask="1" aria-label="Hỏi trợ lý"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1 1 21 12z"/><path d="M9.6 9.6a2.4 2.4 0 1 1 3.4 2.2c-.6.3-1 .8-1 1.4v.3"/><path d="M12 16.4h.01"/></svg></button><h1 id="goalTitle">Mục tiêu năm <span id="ylabel"></span></h1><button class="iconbtn ghost" id="goalAdd" aria-label="Tạo mục tiêu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
     <div class="tabs5" id="goalSeg">
       <button class="on" data-gseg="nw"><span class="ti" data-fi="wallet"></span>Tổng</button>
       <button data-gseg="save"><span class="ti" data-fi="piggy"></span>Tiết kiệm</button>
@@ -850,7 +862,7 @@ nav.tabs .fab svg{width:28px;height:28px}
   <!-- ================= KẾ HOẠCH ================= -->
   <section id="v-plan" class="hidden">
     <div class="stickhead">
-    <div class="titlebar"><span></span><h1 id="planTitle">Ngân sách tháng</h1><button class="iconbtn ghost" id="planAdd" aria-label="Thêm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
+    <div class="titlebar"><button class="iconbtn ghost" data-ask="1" aria-label="Hỏi trợ lý"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1 1 21 12z"/><path d="M9.6 9.6a2.4 2.4 0 1 1 3.4 2.2c-.6.3-1 .8-1 1.4v.3"/><path d="M12 16.4h.01"/></svg></button><h1 id="planTitle">Ngân sách tháng</h1><button class="iconbtn ghost" id="planAdd" aria-label="Thêm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
     <div class="segment" id="planSeg" style="grid-template-columns:repeat(3,1fr)"><button class="on" data-pseg="budget">Ngân sách</button><button data-pseg="accum">Tích lũy</button><button data-pseg="year">Mục tiêu năm</button></div>
     </div>
     <div id="budgetPane">
@@ -871,6 +883,7 @@ nav.tabs .fab svg{width:28px;height:28px}
   <!-- ================= CÀI ĐẶT ================= -->
   <section id="v-set" class="hidden">
     <div class="titlebar"><button class="iconbtn ghost" data-go="back" aria-label="Quay lại"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg></button><h1>Cài đặt</h1><span></span></div>
+    <button class="newgoal" data-ask="1" style="margin-bottom:12px"><span class="pl">💬</span><span><b>Hỏi trợ lý Nhà Mình</b><small>Cần làm gì, trợ lý chỉ ngay chỗ bấm</small></span></button>
     <div class="card" id="elementCard">
       <h3>Giao diện · Màu sắc theo mệnh</h3>
       <div class="elgrid" id="elGrid"></div>
@@ -3430,7 +3443,230 @@ function demoData(){
 
 /* ================= Khởi động ================= */
 load();
-window.__app = {classify, exportExcel, importExcel, loanState, simulate, planPay, goldCalc, cardState, lendState, spendable, get S(){ return S; }};
+/* ================= Trợ lý hỏi đáp ================= */
+// Chạy hoàn toàn trên máy: so khớp câu hỏi với bộ chủ đề bên dưới, không gửi câu hỏi đi đâu.
+// Mỗi chủ đề: q = câu hỏi mẫu, k = cụm từ nhận diện (gõ có dấu hay không dấu đều được), no = cụm từ loại trừ,
+// a = câu trả lời (chuỗi hoặc hàm đọc dữ liệu), acts = nút đưa người dùng tới đúng chỗ cần làm.
+const fold = s => String(s || '').toLowerCase().replace(/đ/g, 'd').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9%]+/g, ' ').trim();
+const hl = sel => setTimeout(() => { const el = typeof sel === 'string' ? $(sel) : sel; if (!el) return;
+  el.scrollIntoView({block:'center', behavior:'smooth'}); el.classList.add('hl'); setTimeout(() => el.classList.remove('hl'), 2600); }, 120);
+const card = sel => { const el = $(sel); return el ? el.closest('.card, .switch, .field, label, .newgoal') || el : null; };
+const goSet = sel => { go('set'); hl(card(sel)); };
+const goAdd = (mode, date) => { resetForm(); F.mode = mode || 'out'; if (date) F.date = date; go('add'); };
+const pickOne = (list, one, many) => list.length === 1 ? one(list[0]) : many();
+const activeLends = () => (S.lends || []).filter(x => !lendState(x).done);
+const curYm = () => today().slice(0, 7);
+const ASK = [
+  {id:'loan', q:'Tôi có khoản vay thì tạo ở đâu?', k:['khoan vay', 'vay ngan hang', 'tra gop', 'vay tien', 'toi vay', 'minh vay', 'dang vay', 'tao khoan vay', 'them khoan vay', 'vay mua', 'no ngan hang', 'vay'],
+    no:['cho vay', 'cho * vay', 'vay tien cua', 'vay cua toi', 'vay cua minh', 'nguoi khac vay', 'nguoi than', 'bo me', 'ban be', 'vay cu', 'truoc khi dung'],
+    a:'Vào <b>Tài sản → Vay nợ</b>, bấm <b>Thêm khoản vay</b> và chọn <b>Ngân hàng, trả góp</b>. Nhập số tiền vay, lãi suất, kỳ hạn và ngày trả kỳ đầu, app tự tính số phải trả mỗi tháng và nhắc trước hạn.',
+    acts:[{t:'Mở biểu mẫu thêm khoản vay', f:() => { go('loan'); openLoanForm(null); }}], rel:['loanfree', 'loanold', 'lend']},
+  {id:'loanfree', q:'Vay người thân, không lãi thì ghi thế nào?', k:['vay nguoi than', 'vay bo me', 'vay ban', 'vay anh', 'vay chi', 'vay em', 'muon tien nguoi than', 'muon bo me', 'khong lai', 'khong ky han', 'no nguoi than', 'toi no', 'minh no'],
+    no:['cho vay', 'no toi', 'no minh'],
+    a:'Vào <b>Tài sản → Vay nợ → Thêm khoản vay</b>, chọn <b>Người thân, bạn bè</b>. Loại này không cần lãi suất và kỳ hạn: chỉ nhập tên, số tiền, ngày vay và số còn nợ nếu đã trả bớt.',
+    acts:[{t:'Mở biểu mẫu vay người thân', f:() => { go('loan'); openLoanForm(null); $('#lKind [data-sa="k:free"]')?.click(); }}], rel:['loan', 'loanpay']},
+  {id:'loanold', q:'Khoản vay đã trả được một thời gian thì nhập sao?', k:['vay cu', 'khoan vay cu', 'da tra duoc', 'da tra mot phan', 'tra duoc may ky', 'du no hien tai', 'truoc khi dung', 'tu truoc', 'dang tra do'],
+    no:['thu no', 'cho vay', 'no toi', 'no minh', 'nguoi khac'],
+    a:'Khi thêm khoản vay ngân hàng, chọn <b>ngày trả kỳ đầu tiên đúng như hợp đồng</b> (kể cả ngày đã qua), rồi điền ở phần <b>Nếu khoản vay đã trả được một thời gian</b>: số kỳ đã trả và dư nợ gốc hiện tại. Với khoản vay người thân, điền ô <b>Còn nợ</b>. App không tính những kỳ đã trả trước đó vào chi tiêu.',
+    acts:[{t:'Mở biểu mẫu, tới phần đã trả', f:() => { go('loan'); openLoanForm(null); hl('#lHist'); }}], rel:['loan', 'loanfree']},
+  {id:'loanpay', q:'Trả nợ kỳ này ghi ở đâu?', k:['tra no', 'tra ky', 'tra khoan vay', 'den han tra', 'ghi tra no', 'tra gop thang nay', 'thanh toan khoan vay'],
+    no:['the tin dung', 'sao ke', 'tra lai tien cho', 'tra tien cho toi', 'tra tien cho minh'],
+    a:() => S.loans.length ? 'Vào <b>Tài sản → Vay nợ</b>, bấm vào khoản vay rồi bấm <b>Ghi trả kỳ này</b>. App tự ghi một khoản chi trả nợ đúng số tiền và giảm dư nợ.' : 'Bạn chưa có khoản vay nào trong app. Hãy thêm khoản vay trước, sau đó mỗi kỳ bấm vào khoản vay để ghi trả.',
+    acts:[{t:'Đi tới chỗ ghi trả', f:() => { go('loan'); pickOne(S.loans, L => openPay(L.id), () => hl('#loanList')); }}], rel:['loan', 'card']},
+  {id:'lend', q:'Người khác mượn tiền của tôi thì ghi ở đâu?', k:['cho vay', 'cho muon', 'cho * vay', 'cho * muon', 'nguoi khac no', 'nguoi khac vay', 'muon tien cua', 'vay tien cua', 'vay cua toi', 'vay cua minh', 'no toi', 'no minh', 'no tien toi', 'no tien minh', 'doi no', 'thu no', 'ai no'],
+    no:['no cu', 'truoc khi dung', 'tu truoc', 'tra tien', 'tra lai'],
+    a:'Vào <b>Tài sản → Vay nợ</b>, bấm <b>Thêm khoản cho vay</b>: nhập người nợ, số tiền, ngày cho vay và ngày hẹn trả. Khoản cho vay <b>không tính là khoản chi</b>, số còn nợ được cộng vào tài sản ròng và app nhắc khi gần tới hẹn.',
+    acts:[{t:'Mở biểu mẫu thêm khoản cho vay', f:() => { go('loan'); openLend(null); }}], rel:['lendold', 'lendpay']},
+  {id:'lendold', q:'Thu nợ cũ từ trước khi dùng app thì tạo ở đâu?', k:['thu no cu', 'no cu', 'cho vay tu truoc', 'cho vay cu', 'truoc khi dung', 'tu truoc', 'tu lau', 'da tra bot', 'tra bot', 'con no'],
+    no:['khoan vay cu', 'vay ngan hang', 'tra gop'],
+    a:'Vẫn tạo ở <b>Tài sản → Vay nợ → Thêm khoản cho vay</b>. Chọn <b>ngày cho vay thật</b> (ngày cũ cũng được) và nếu người ta đã trả bớt trước đó thì điền ô <b>Còn nợ hiện tại</b>. Khi họ trả tiếp, bấm <b>Ghi nhận trả</b> trên thẻ đó. Các lần trả không tính là khoản thu.',
+    acts:[{t:'Mở biểu mẫu, tới ô còn nợ', f:() => { go('loan'); openLend(null); hl(card('#dC')); }}], rel:['lend', 'lendpay']},
+  {id:'lendpay', q:'Người ta trả tiền cho tôi thì ghi thế nào?', k:['tra tien cho toi', 'tra tien cho minh', 'tra lai tien', 'tra lai', 'thu lai tien', 'nhan lai tien', 'da tra tien', 'ghi nhan tra', 'thu duoc no', 'tra no cho toi', 'tra no cho minh'],
+    a:() => activeLends().length ? 'Vào <b>Tài sản → Vay nợ</b>, tìm thẻ của người đó trong nhóm <b>Người khác nợ mình</b> và bấm <b>Ghi nhận trả</b>. Trả một phần thì sửa lại số tiền. Trả hết thì khoản chuyển sang nhóm <b>Đã thu hết</b>.' : 'Hiện chưa có ai đang nợ bạn trong app. Hãy thêm khoản cho vay trước, sau đó mỗi lần người ta trả thì bấm <b>Ghi nhận trả</b>.',
+    acts:[{t:'Đi tới chỗ ghi nhận trả', f:() => { go('loan'); pickOne(activeLends(), x => openLendPay(x.id), () => hl('#lendList')); }}], rel:['lend', 'whoowes']},
+  {id:'card', q:'Thêm thẻ tín dụng ở đâu?', k:['the tin dung', 'them the', 'credit', 'visa', 'mastercard', 'the vpbank', 'han muc the', 'ngay sao ke', 'ngay chot'],
+    no:['tra the', 'thanh toan the', 'quet the'],
+    a:'Vào <b>Tài sản → Vay nợ</b>, bấm <b>Thêm thẻ tín dụng</b>: nhập tên thẻ, ngày chốt sao kê và số ngày được trả chậm. App theo dõi kỳ sao kê, hạn thanh toán và tự đưa số phải trả vào bảng chia lương.',
+    acts:[{t:'Mở biểu mẫu thêm thẻ', f:() => { go('loan'); openCardForm(null); }}], rel:['cardswipe', 'cardpay']},
+  {id:'cardswipe', q:'Chi bằng thẻ tín dụng thì ghi thế nào?', k:['quet the', 'chi bang the', 'tra bang the', 'mua bang the', 'thanh toan bang the', 'tieu bang the'],
+    a:() => (S.cards || []).length ? 'Ghi như khoản chi bình thường, rồi bấm nút <b>Trả bằng</b> ngay trên ô số tiền để chọn thẻ. Khoản quẹt thẻ tính vào chi tiêu <b>ngày quẹt</b>, còn lúc trả sao kê thì không tính thêm lần nữa.' : 'Bạn cần thêm thẻ tín dụng trước. Sau đó khi ghi khoản chi, bấm nút <b>Trả bằng</b> trên ô số tiền để chọn thẻ.',
+    acts:[{t:'Mở màn ghi khoản chi', f:() => { goAdd('out'); hl((S.cards || []).length ? '#payWith' : '#amountBox'); }}, {t:'Thêm thẻ tín dụng', f:() => { go('loan'); openCardForm(null); }}], rel:['card', 'cardpay']},
+  {id:'cardpay', q:'Trả tiền sao kê thẻ tín dụng ghi ở đâu?', k:['tra the', 'thanh toan the', 'tra sao ke', 'sao ke', 'thanh toan sao ke', 'tra no the', 'han tra the'],
+    a:'Vào <b>Tài sản → Vay nợ</b>, bấm vào thẻ rồi bấm <b>Ghi trả thẻ</b>. Trả sao kê <b>không phải khoản chi mới</b>, vì các lần quẹt đã được tính lúc quẹt.',
+    acts:[{t:'Đi tới chỗ trả thẻ', f:() => { go('loan'); pickOne(S.cards || [], c => openCardPay(c.id), () => hl('#cardList')); }}], rel:['cardswipe']},
+  {id:'add', q:'Ghi một khoản chi thế nào?', k:['ghi chi', 'khoan chi', 'them chi', 'ghi tieu', 'nhap chi', 'chi tieu moi', 'vua mua', 'vua tieu', 'ghi khoan'],
+    a:'Bấm nút <b>＋ Thêm</b> ở giữa thanh dưới. Gõ số tiền trên bàn phím số, gõ <b>nội dung chi</b> (vd: “cà phê sáng”), app tự chọn danh mục, quỹ và mức độ. Thứ tự nào trước cũng được. Bấm <b>Lưu</b> là xong.',
+    acts:[{t:'Ghi khoản chi ngay', f:() => goAdd('out')}], rel:['income', 'classify', 'olddate']},
+  {id:'income', q:'Ghi lương, khoản thu ở đâu?', k:['ghi luong', 'nhan luong', 'khoan thu', 'ghi thu', 'thu nhap', 'tien luong', 'luong ve', 'thuong', 'them thu'],
+    no:['chia luong'],
+    a:'Bấm <b>＋ Thêm</b>, rồi bấm nút <b>⇄ Thu</b> ở góc trên để chuyển sang ghi khoản thu. Nhập số tiền và nội dung (vd: “lương tháng 11”). Sau khi ghi lương, app gợi ý <b>chia lương</b> vào các quỹ.',
+    acts:[{t:'Ghi khoản thu ngay', f:() => goAdd('in')}], rel:['split', 'editinc']},
+  {id:'editinc', q:'Sửa hoặc xóa khoản thu?', k:['sua khoan thu', 'xoa khoan thu', 'sua luong', 'ghi nham luong', 'sua thu nhap'],
+    a:'Vào <b>Giao dịch → Thu & quỹ</b>, bấm vào khoản thu cần sửa. Trong đó có nút sửa số tiền, ngày và nút xóa.',
+    acts:[{t:'Mở Thu & quỹ', f:() => { go('stat'); hl('#txSt'); }}], rel:['income']},
+  {id:'edit', q:'Sửa hoặc xóa khoản chi đã ghi?', k:['sua khoan chi', 'xoa khoan chi', 'ghi nham', 'nhap sai', 'sua giao dich', 'xoa giao dich', 'doi danh muc', 'sua so tien', 'sua chi'],
+    a:'Vào <b>Giao dịch → Danh sách</b>, bấm vào khoản chi cần sửa. Có thể đổi nội dung, số tiền, ngày, danh mục, quỹ, mức độ, hoặc bấm <b>Xóa khoản này</b>. Khoản vừa ghi cũng hiện ngay ở trang chủ, bấm vào là sửa được.',
+    acts:[{t:'Mở danh sách giao dịch', f:() => { txSeg = 'ls'; go('tx'); hl('#txLs'); }}], rel:['add', 'classify']},
+  {id:'olddate', q:'Quên ghi hôm qua, ghi bù cho ngày khác thế nào?', k:['hom qua', 'ghi bu', 'quen ghi', 'ngay khac', 'doi ngay', 'chon ngay', 'ngay chi', 'ngay hom truoc'],
+    a:'Trên màn ghi khoản chi, bấm vào ô <b>Ngày chi</b> ở trên cùng để chọn ngày khác. Nếu quên ghi hôm qua, trang chủ có sẵn nút <b>Ghi bù hôm qua</b>.',
+    acts:[{t:'Ghi bù cho hôm qua', f:() => goAdd('out', addDays(today(), -1))}, {t:'Chọn ngày khác', f:() => { goAdd('out'); hl('#dateCard'); }}], rel:['add']},
+  {id:'classify', q:'App phân loại chi tiêu thế nào? Đổi mức độ ra sao?', k:['phan loai', 'muc do', 'can thiet', 'nen co', 'lang phi la gi', 'tu nhan dien', 'tu chon danh muc', 'sai danh muc', 'g h i'],
+    a:'Mỗi khoản chi có 3 mức: <b>Cần thiết</b> (thiết yếu), <b>Nên có</b> (cải thiện cuộc sống) và <b>Lãng phí</b> (có thể bỏ). App đoán danh mục và mức độ theo <b>nội dung chi</b> bạn gõ. Nếu đoán chưa đúng, bấm lại nút mức độ hoặc danh mục trước khi lưu. App học theo những lần bạn đã ghi.',
+    acts:[{t:'Xem chỗ chọn mức độ', f:() => { goAdd('out'); hl('#levels'); }}], rel:['waste', 'category']},
+  {id:'split', q:'Chia lương vào các quỹ thế nào?', k:['chia luong', 'phan bo luong', 'chia tien', 'chia vao quy', 'bang chia luong', 'mau chia luong', 'phan bo'],
+    a:'Sau khi ghi lương, vào <b>Giao dịch → Thu & quỹ</b> và bấm <b>Chia lương</b>. App gợi ý số tiền cho từng việc: trả nợ, trả thẻ, tiết kiệm, tích lũy và các quỹ. Bạn sửa số rồi bấm xác nhận từng dòng khi đã chuyển tiền.',
+    acts:[{t:'Mở bảng chia lương', f:() => { go('stat'); openAlloc(0, curYm()); }}], rel:['fund', 'fundpct', 'income']},
+  {id:'fund', q:'Thêm, sửa, xóa quỹ ở đâu?', k:['quy', 'them quy', 'sua quy', 'xoa quy', 'doi ten quy', 'cac quy', 'tao quy'],
+    no:['ty le', '%', 'phan tram', 'chia luong'],
+    a:'Vào <b>Cài đặt → Các quỹ</b>. Bấm vào một quỹ để đổi tên, tài khoản hoặc xóa. Bấm <b>＋ Thêm quỹ</b> để tạo quỹ mới. Khi xóa, các khoản chi của quỹ đó được chuyển sang quỹ bạn chọn. Quỹ đầu tiên là quỹ chi tiêu chính nên không xóa được.',
+    acts:[{t:'Thêm quỹ mới', f:() => { go('set'); openFundEdit(null); }}, {t:'Xem các quỹ', f:() => goSet('#setFunds')}], rel:['fundpct', 'split']},
+  {id:'fundpct', q:'Đổi tỷ lệ phần trăm các quỹ?', k:['ty le quy', 'ty le', 'phan tram', '%', '100%', 'tong quy', 'sua ty le'],
+    a:'Vào <b>Cài đặt → Các quỹ</b>, bấm <b>✎ Sửa tỷ lệ</b>. Tổng các quỹ phải <b>đúng 100%</b> thì mới lưu được.',
+    acts:[{t:'Mở bảng sửa tỷ lệ', f:() => { go('set'); openFundPct(); }}], rel:['fund', 'split']},
+  {id:'category', q:'Thêm danh mục hoặc đổi quỹ mặc định?', k:['danh muc', 'them danh muc', 'xoa danh muc', 'doi icon', 'quy mac dinh', 'loai chi'],
+    a:'Vào <b>Cài đặt → Danh mục và quỹ mặc định</b>. Gõ tên vào ô cuối để thêm danh mục mới, chọn quỹ ở cạnh mỗi danh mục để app tự gán quỹ khi ghi, bấm vào biểu tượng để đổi icon, bấm ✕ để xóa.',
+    acts:[{t:'Mở phần danh mục', f:() => goSet('#addCat')}], rel:['fund', 'budget']},
+  {id:'budget', q:'Đặt ngân sách cho từng danh mục?', k:['ngan sach', 'gioi han chi', 'han muc danh muc', 'dat ngan sach', 'chi toi da danh muc'],
+    a:'Vào <b>Kế hoạch → Ngân sách</b>, bấm <b>＋</b> để chọn danh mục và đặt số tiền tối đa mỗi tháng. App hiện thanh tiến độ và cảnh báo khi sắp vượt.',
+    acts:[{t:'Đặt ngân sách', f:() => { go('budget'); openBudgetPicker(); }}], rel:['alert', 'accum']},
+  {id:'accum', q:'Để dành tiền cho một khoản sắp tới?', k:['tich luy', 'de danh', 'danh dum', 'gom tien', 'ke hoach tich luy', 'de rieng', 'chuan bi tien'],
+    a:'Vào <b>Kế hoạch → Tích lũy</b>, bấm <b>Thêm kế hoạch tích lũy</b>: nhập khoản cần (vd: học phí, Tết), số tiền và ngày cần. App chia ra mỗi tháng cần để dành bao nhiêu và đưa vào bảng chia lương.',
+    acts:[{t:'Thêm kế hoạch tích lũy', f:() => { go('accum'); openPlan(null); }}], rel:['goal', 'saving']},
+  {id:'goal', q:'Đặt mục tiêu mua sắm lớn trong năm?', k:['muc tieu', 'mua lon', 'muc tieu nam', 'muon mua', 'du dinh mua'],
+    a:'Vào <b>Kế hoạch → Mục tiêu năm</b>, bấm <b>Tạo mục tiêu mới</b>: nhập món muốn mua và số tiền dự kiến. Khi mua, gắn khoản chi vào mục tiêu để theo dõi đã chi bao nhiêu.',
+    acts:[{t:'Tạo mục tiêu mới', f:() => { go('year'); openGoal(null); }}], rel:['accum']},
+  {id:'saving', q:'Thêm sổ tiết kiệm ở đâu?', k:['so tiet kiem', 'tiet kiem', 'gui tiet kiem', 'gui ngan hang', 'lai tiet kiem', 'tat toan', 'dao han'],
+    a:'Vào <b>Tài sản → Tiết kiệm</b>, bấm <b>Thêm sổ tiết kiệm</b>: nhập ngân hàng, số tiền gửi, lãi suất, kỳ hạn và ngày gửi. App tính lãi, nhắc trước ngày đáo hạn. Khi rút, bấm vào sổ và chọn <b>Tất toán</b>.',
+    acts:[{t:'Thêm sổ tiết kiệm', f:() => { go('save'); openSaving(null); }}], rel:['nw', 'accum']},
+  {id:'gold', q:'Ghi mua vàng, bạc ở đâu?', k:['vang', 'bac', 'mua vang', 'ban vang', 'chi vang', 'nhan vang', 'sjc', 'tich tru'],
+    no:['gia vang'],
+    a:'Vào <b>Tài sản → Vàng bạc</b>, bấm <b>Ghi mua / bán vàng, bạc</b>: chọn loại, nơi mua (vd: Bảo Tín, Doji), số chỉ và giá. Mỗi nơi được theo dõi riêng.',
+    acts:[{t:'Ghi mua vàng, bạc', f:() => { go('gold'); openGoldForm(null, 'buy'); }}, {t:'Ghi bán', f:() => { go('gold'); openGoldForm(null, 'sell'); }}], rel:['goldprice', 'nw']},
+  {id:'goldprice', q:'Cập nhật giá vàng theo từng tiệm?', k:['gia vang', 'gia bac', 'cap nhat gia', 'gia hom nay', 'bao tin', 'doji', 'pnj', 'gia tiem'],
+    a:'Vào <b>Tài sản → Vàng bạc</b>, bấm vào loại vàng rồi bấm <b>Cập nhật giá</b>. Mỗi nơi bạn đang giữ vàng có một ô giá riêng, vì giá mua lại của mỗi tiệm khác nhau.',
+    acts:[{t:'Đi tới giá vàng', f:() => { go('gold'); const k = Object.values(goldCalc().kinds).find(x => x.qty > 0); k ? openGoldPrice(k.kind) : hl('#goldKinds'); }}], rel:['gold']},
+  {id:'asset', q:'Thêm nhà, đất, xe, tài khoản ngân hàng?', k:['tai san', 'nha', 'dat', 'xe', 'chung khoan', 'co phieu', 'chung chi quy', 'tai khoan ngan hang', 'so du', 'tien mat', 'bat dong san', 'them tai san'],
+    no:['tai san rong', 'tong tai san', 'cap nhat gia tri'],
+    a:'Vào <b>Tài sản → Tài sản</b>, bấm <b>Thêm tài sản</b> và chọn loại: tài khoản ngân hàng, tiền mặt, chứng khoán, chứng chỉ quỹ, bất động sản, xe cộ. Nhập giá mua và giá trị hiện tại nếu biết.',
+    acts:[{t:'Thêm tài sản', f:() => { go('asset'); openAsset(null); }}], rel:['assetval', 'nw']},
+  {id:'assetval', q:'Cập nhật giá trị nhà, đất hiện tại?', k:['cap nhat gia tri', 'gia tri hien tai', 'dinh gia', 'gia dat', 'gia nha', 'dat len gia'],
+    a:'Vào <b>Tài sản → Tài sản</b>, bấm vào tài sản và sửa ô <b>Giá trị hiện tại</b>. Khi chưa nhập, app tạm tính theo giá mua. Nên cập nhật vài tháng một lần để tài sản ròng sát thực tế.',
+    acts:[{t:'Đi tới danh sách tài sản', f:() => { go('asset'); hl('#assetList'); }}], rel:['asset', 'nw']},
+  {id:'nw', q:'Xem tổng tài sản ròng ở đâu?', k:['tai san rong', 'tong tai san', 'gia tai', 'co bao nhieu tai san', 'tong tien', 'tong ket tai san'],
+    a:() => { const w = netWorth(); return `Tài sản ròng hiện tại là <b>${fmt(w.net)} đ</b> (tài sản ${shortMoney(w.assets)} trừ nợ ${shortMoney(w.debt)}). Xem chi tiết ở <b>Tài sản → Tổng</b>: phân bổ theo loại và biến động 6 tháng.`; },
+    acts:[{t:'Mở tổng tài sản', f:() => go('nw')}], rel:['asset', 'loan']},
+  {id:'left', q:'Tháng này còn được tiêu bao nhiêu?', k:['con duoc tieu', 'con bao nhieu', 'con lai bao nhieu', 'tieu duoc bao nhieu', 'con tien', 'het tien', 'du tieu', 'moi ngay tieu'],
+    a:() => { const s = spendable(curYm()); if (!incomeOf(curYm())) return 'Tháng này chưa có khoản thu nên app chưa tính được. Hãy ghi lương trước.';
+      return `Tháng này còn được tiêu <b>${fmt(s.left)} đ</b>${s.left > 0 && s.days ? `, khoảng <b>${shortMoney(s.left / s.days)}/ngày</b> cho ${s.days} ngày còn lại` : ''}. Con số đã trừ các khoản chi và ${shortMoney(s.reserved)} phải để riêng theo bảng chia lương.`; },
+    acts:[{t:'Xem tổng quan tháng', f:() => { txSeg = 'ov'; go('tx'); }}, {t:'Ghi khoản thu', f:() => goAdd('in')}], rel:['waste', 'split']},
+  {id:'waste', q:'Tháng này lãng phí bao nhiêu?', k:['lang phi', 'tieu phi', 'han muc lang phi', 'chi linh tinh'],
+    no:['la gi'],
+    a:() => { const w = sums(txIn(curYm())).I, cap = S.settings.wasteCap || 0;
+      return `Tháng này đã chi lãng phí <b>${fmt(w)} đ</b>${cap ? ` trên hạn mức ${shortMoney(cap)} (${Math.round(w / cap * 100)}%)` : ''}. Muốn đổi hạn mức, vào <b>Cài đặt → Mức cảnh báo</b>.`; },
+    acts:[{t:'Xem các khoản lãng phí', f:() => { txSeg = 'ls'; lvFilter = 'I'; curM = curYm(); go('tx'); }}, {t:'Đổi hạn mức', f:() => goSet('#setCap')}], rel:['alert', 'classify']},
+  {id:'whoowes', q:'Ai đang nợ tôi?', k:['ai dang no', 'ai no', 'ai chua tra', 'bao nhieu nguoi no', 'nguoi dang no'],
+    a:() => { const ls = activeLends(); if (!ls.length) return 'Hiện không có ai đang nợ bạn trong app.';
+      return `Có <b>${ls.length} người</b> đang nợ, tổng <b>${fmt(lendLeft())} đ</b>: ` + ls.map(x => `${esc(x.name)} ${shortMoney(lendState(x).left)}${x.due ? ` (hẹn ${dM(x.due)})` : ''}`).join(', ') + '.'; },
+    acts:[{t:'Xem các khoản cho vay', f:() => { go('loan'); hl('#lendList'); }}], rel:['lendpay', 'lend']},
+  {id:'due', q:'Khoản nợ nào sắp đến hạn?', k:['sap den han', 'den han', 'han tra', 'khi nao tra', 'qua han', 'lich tra no'],
+    a:() => { const r = S.loans.map(L => [L, loanState(L).next]).filter(([, n]) => n).sort((a, b) => a[1].due.localeCompare(b[1].due))
+        .map(([L, n]) => `${esc(L.name)} ${n.total ? shortMoney(n.total) + ' ' : ''}ngày ${dM(n.due)}`);
+      (S.cards || []).forEach(c => { const x = cardState(c); if (x.stmt) r.push(`thẻ ${esc(c.name)} ${shortMoney(x.stmt)} hạn ${dM(x.due)}`); });
+      return r.length ? `Sắp tới cần trả: ${r.slice(0, 4).join('; ')}.` : 'Hiện chưa có khoản vay hay sao kê thẻ nào cần trả.'; },
+    acts:[{t:'Mở Vay nợ', f:() => go('loan')}], rel:['loanpay', 'cardpay']},
+  {id:'stat', q:'Xem thống kê chi tiêu theo tháng?', k:['thong ke', 'bao cao', 'bieu do', 'tong ket', 'so sanh thang', 'chi bao nhieu', 'tong chi'],
+    a:'Vào <b>Giao dịch → Tổng quan</b> để xem tổng chi theo danh mục và mức độ của từng tháng (bấm mũi tên để đổi tháng). Mục <b>Thu & quỹ</b> có chuỗi ngày ghi chép và xu hướng các tháng.',
+    acts:[{t:'Mở thống kê', f:() => { txSeg = 'ov'; go('tx'); }}], rel:['excel', 'left']},
+  {id:'streak', q:'Chuỗi ngày 🔥 là gì?', k:['chuoi', 'streak', 'lua', 'ngay lien tiep', 'khong chi gi', 'ngay khong chi'],
+    a:'Chuỗi 🔥 đếm số ngày liên tiếp bạn ghi chép. Ngày không tiêu gì, bấm <b>Hôm nay không chi</b> ở trang chủ (hiện sau 18 giờ) để giữ chuỗi.',
+    acts:[{t:'Xem chuỗi ngày', f:() => { go('stat'); hl('#streakTxt'); }}], rel:['add']},
+  {id:'alert', q:'Đặt mức cảnh báo chi tiêu?', k:['canh bao', 'nhac', 'thong bao', 'muc canh bao', 'chi toi da', 'vuot muc'],
+    a:'Vào <b>Cài đặt → Mức cảnh báo</b>: đặt tổng chi tối đa mỗi tháng (hoặc theo % thu nhập), hạn mức lãng phí, số ngày nhắc trước hạn trả nợ và đáo hạn sổ tiết kiệm.',
+    acts:[{t:'Mở mức cảnh báo', f:() => goSet('#alertCard')}], rel:['waste', 'budget']},
+  {id:'excel', q:'Xuất file Excel thế nào?', k:['excel', 'xuat file', 'xuat excel', 'tai file', 'file xlsx', 'in ra'],
+    no:['nhap', 'so cu'],
+    a:'Vào <b>Cài đặt → File Excel</b>, chọn năm và bấm <b>Xuất Excel</b>. File giống sổ chi tiêu cũ: phân quỹ, mục tiêu, thống kê và 12 sheet theo tháng, kèm các sheet vay nợ, cho vay, tài sản.',
+    acts:[{t:'Xuất Excel năm nay', f:() => { goSet('#expBtn'); exportExcel(curY).catch(er => toast('Xuất file lỗi: ' + esc(er.message || er))); }}], rel:['import', 'backup']},
+  {id:'import', q:'Nhập dữ liệu từ sổ Excel cũ?', k:['nhap excel', 'so excel cu', 'file cu', 'du lieu cu', 'chuyen tu excel', 'nhap tu excel', 'so cu'],
+    a:'Vào <b>Cài đặt → File Excel</b>, bấm <b>Nhập từ sổ Excel cũ (.xlsx)</b> và chọn file. App đọc các sheet tháng (cột MUST HAVE, NICE TO HAVE, WASTED) và cho bạn xem trước khi nhập.',
+    acts:[{t:'Đi tới chỗ nhập file', f:() => goSet('#impFile')}], rel:['excel', 'restore']},
+  {id:'backup', q:'Sao lưu dữ liệu thế nào?', k:['sao luu', 'backup', 'luu du lieu', 'mat du lieu', 'luu file', 'icloud'],
+    no:['khoi phuc'],
+    a:'Vào <b>Cài đặt → Sao lưu dữ liệu</b>, bấm <b>Lưu file sao lưu</b> và lưu vào iCloud Drive. Dữ liệu chỉ nằm trên máy này, nên mỗi tháng sao lưu một lần là an toàn.',
+    acts:[{t:'Sao lưu ngay', f:() => { goSet('#bkBtn'); backup(); }}], rel:['restore', 'move']},
+  {id:'restore', q:'Khôi phục dữ liệu từ file sao lưu?', k:['khoi phuc', 'restore', 'nhap file du lieu', 'lay lai du lieu', 'mo file sao luu'],
+    a:'Vào <b>Cài đặt → Sao lưu dữ liệu</b>, bấm <b>Khôi phục / nhập file dữ liệu</b> và chọn file sao lưu (.json). Dữ liệu hiện có trên máy sẽ được thay bằng dữ liệu trong file.',
+    acts:[{t:'Đi tới chỗ khôi phục', f:() => goSet('#rsFile')}], rel:['backup', 'move']},
+  {id:'move', q:'Chuyển dữ liệu sang điện thoại khác?', k:['chuyen du lieu', 'doi may', 'may moi', 'sang iphone', 'sang may khac', 'airdrop', 'dung chung', 'chong', 'vo', 'hai vo chong', 'dong bo'],
+    a:'Hiện mỗi máy giữ dữ liệu riêng. Để chuyển: trên máy cũ <b>Lưu file sao lưu</b>, gửi file qua AirDrop hoặc Zalo, rồi trên máy mới mở app từ màn hình chính và bấm <b>Khôi phục</b>. Tính năng dùng chung sổ cho cả nhà, tự đồng bộ giữa các máy, đang được chuẩn bị.',
+    acts:[{t:'Mở phần sao lưu', f:() => goSet('#bkBtn')}], rel:['backup', 'restore']},
+  {id:'install', q:'Cài app lên màn hình iPhone?', k:['cai app', 'cai dat app', 'man hinh chinh', 'them vao man hinh', 'icon', 'tai app', 'cai len iphone'],
+    a:() => standalone() ? 'Bạn đang dùng Nhà Mình từ icon trên màn hình chính rồi.' : 'Mở địa chỉ của app bằng <b>Safari</b>, bấm nút <b>Chia sẻ</b>, chọn <b>Thêm vào MH chính</b>. Từ đó luôn mở bằng icon Nhà Mình. Lưu ý dữ liệu trong icon và trong tab Safari là hai nơi riêng.',
+    acts:[{t:'Xem hướng dẫn cài', f:() => goSet(standalone() ? '#elementCard' : '#installCard')}], rel:['update', 'move']},
+  {id:'update', q:'Làm sao cập nhật bản mới nhất?', k:['cap nhat app', 'ban moi', 'phien ban', 'update', 'nang cap app'],
+    a:'App tự cập nhật: mỗi khi mở lại, app kiểm tra bản mới và tự tải lại (nếu bạn đang ghi dở thì hiện thông báo để bấm tải lại sau). Nếu chưa thấy, hãy vuốt tắt hẳn app rồi mở lại.',
+    acts:[], rel:['install']},
+  {id:'hide', q:'Ẩn số dư trên trang chủ?', k:['an so du', 'an so tien', 'giau so', 'che so', 'riêng tu', 'rieng tu'],
+    a:'Bấm biểu tượng con mắt cạnh số dư trên trang chủ, hoặc bật <b>Ẩn số dư trên trang chủ</b> trong <b>Cài đặt → Cá nhân hóa</b>.',
+    acts:[{t:'Mở cài đặt ẩn số dư', f:() => goSet('#setHide')}], rel:['privacy']},
+  {id:'theme', q:'Đổi màu giao diện?', k:['doi mau', 'mau sac', 'giao dien', 'menh', 'chu de', 'phong thuy'],
+    a:'Vào <b>Cài đặt → Giao diện · Màu sắc theo mệnh</b> và chọn mệnh Kim, Mộc, Thủy, Hỏa hoặc Thổ. App luôn dùng nền sáng.',
+    acts:[{t:'Mở phần giao diện', f:() => goSet('#elementCard')}], rel:['name']},
+  {id:'name', q:'Đổi tên app gọi tôi?', k:['doi ten', 'ten cua toi', 'ten toi', 'xung ho', 'goi toi'],
+    no:['quy', 'danh muc'],
+    a:'Vào <b>Cài đặt → Cá nhân hóa</b>, sửa ô <b>Tên của bạn</b>. Trang chủ sẽ chào theo tên này.',
+    acts:[{t:'Mở ô tên', f:() => goSet('#setOwner')}], rel:['theme']},
+  {id:'auto1000', q:'Gõ 35 thành 35.000 là sao?', k:['nhan 1000', '1000', 'go 35', 'tu nhan', 'them so 0', 'nghin'],
+    a:'Khi bật <b>Tự nhân 1.000</b>, gõ số nhỏ như 35 sẽ được hiểu là 35.000đ cho nhanh. Tắt hoặc bật trong <b>Cài đặt → Cá nhân hóa</b>.',
+    acts:[{t:'Mở cài đặt này', f:() => goSet('#setAuto')}], rel:['add']},
+  {id:'privacy', q:'Dữ liệu của tôi có được gửi đi đâu không?', k:['an toan', 'bao mat', 'gui di dau', 'ai xem duoc', 'luu o dau', 'du lieu luu'],
+    a:'Không. Toàn bộ dữ liệu, kể cả câu bạn hỏi trợ lý, chỉ nằm trên máy này. Vì vậy hãy sao lưu định kỳ để không mất dữ liệu khi đổi máy hoặc xóa app.',
+    acts:[{t:'Sao lưu ngay', f:() => { goSet('#bkBtn'); backup(); }}], rel:['backup']},
+  {id:'wipe', q:'Xóa toàn bộ dữ liệu để làm lại?', k:['xoa het', 'xoa toan bo', 'lam lai tu dau', 'reset', 'xoa du lieu'],
+    a:'Vào <b>Cài đặt → Sao lưu dữ liệu</b>, bấm <b>Xóa toàn bộ dữ liệu</b>. Thao tác này không hoàn tác được, nên hãy <b>lưu file sao lưu trước</b>.',
+    acts:[{t:'Đi tới nút xóa', f:() => goSet('#wipeBtn')}], rel:['backup']},
+];
+const ASK_POP = ['loan', 'lendold', 'income', 'split', 'left', 'backup'];
+const askById = id => ASK.find(x => x.id === id);
+const askW = p => Math.pow(p.split(/[ *]+/).filter(Boolean).length + (p.includes('*') ? .5 : 0), 1.6);
+function askMatch(text){
+  const t = ' ' + fold(text) + ' '; if (t.trim().length < 2) return [];
+  const has = p => p.includes('*') ? new RegExp(' ' + p.split('*').map(fold).join(' [a-z0-9]+ ').replace(/ +/g, ' ') + ' ').test(t) : t.includes(' ' + fold(p) + ' ') || (p === '%' && t.includes('%'));
+  return ASK.map(x => { let s = 0; x.k.forEach(p => { if (has(p)) s += askW(p); }); if (s) (x.no || []).forEach(p => { if (has(p)) s -= askW(p) * .9; }); return {x, s}; })
+    .filter(r => r.s >= 1).sort((a, b) => b.s - a.s);
+}
+let askLog = [];
+const askHi = () => ({who:'bot', html:`Chào ${esc(S.settings.owner || 'bạn')} 👋 Bạn cần làm gì trong Nhà Mình? Gõ câu hỏi, có dấu hay không dấu đều được, hoặc chọn một câu bên dưới.`, chips:ASK_POP});
+function askAnswer(text, id){
+  askLog.push({who:'me', html:esc(text)});
+  const hits = id ? [{x:askById(id), s:9}] : askMatch(text);
+  if (!hits.length) { askLog.push({who:'bot', html:'Mình chưa hiểu câu này. Bạn thử hỏi ngắn hơn, ví dụ “tạo khoản vay”, “ghi lương”, “sao lưu”, hoặc chọn một chủ đề:', chips:['add', 'loan', 'lend', 'card', 'fund', 'saving', 'gold', 'excel']}); return; }
+  const top = hits[0].x, alt = hits.slice(1).filter(r => r.s >= hits[0].s * .6).map(r => r.x.id);
+  const chips = [...new Set(alt.concat(top.rel || []))].filter(c => c !== top.id).slice(0, 3);
+  askLog.push({who:'bot', html:typeof top.a === 'function' ? top.a() : top.a, acts:top.id, chips, alt:alt.length > 0});
+}
+function renderAsk(){
+  $('#askLog').innerHTML = askLog.map(m => m.who === 'me' ? `<div class="bub me">${m.html}</div>` : `<div class="bub bot"><div class="pretty">${m.html}</div>
+    ${m.acts ? `<div class="askacts">${askById(m.acts).acts.map((a, i) => `<button class="btn-s ${i ? '' : 'pri'}" data-sa="do:${m.acts}:${i}">${a.t} →</button>`).join('')}</div>` : ''}
+    ${m.chips && m.chips.length ? `<div class="askq">${m.alt ? '<small>Có thể bạn muốn hỏi:</small>' : m.acts ? '<small>Câu liên quan:</small>' : ''}${m.chips.map(c => `<button data-sa="q:${c}">${askById(c).q}</button>`).join('')}</div>` : ''}</div>`).join('');
+  const sh = $('#layer .sheet'); if (sh) sh.scrollTop = sh.scrollHeight;
+}
+function openAsk(){
+  if (!askLog.length) askLog.push(askHi());
+  sheet(`<div class="askhead"><h2>💬 Trợ lý Nhà Mình</h2><button class="btn-s" data-sa="clear">Làm mới</button></div>
+    <div id="askLog" class="asklog"></div>
+    <form id="askForm" class="askin"><input class="inp" id="askQ" placeholder="vd: tạo khoản vay ở đâu?" enterkeyhint="send" autocomplete="off"><button class="btn pri" aria-label="Gửi">Gửi</button></form>`,
+  a => {
+    if (a === 'clear') { askLog = [askHi()]; renderAsk(); return; }
+    if (a.startsWith('q:')) { const x = askById(a.slice(2)); askAnswer(x.q, x.id); renderAsk(); return; }
+    if (a.startsWith('do:')) { const [, id, i] = a.split(':'); closeSheet(); askById(id).acts[Number(i)].f(); }
+  });
+  renderAsk();
+  $('#askForm').onsubmit = e => { e.preventDefault(); const v = $('#askQ').value.trim(); if (!v) return; $('#askQ').value = ''; askAnswer(v); renderAsk(); };
+}
+document.addEventListener('click', e => { if (e.target.closest('[data-ask]')) { e.preventDefault(); openAsk(); } });
+
+window.__app = {ask:askMatch, classify, exportExcel, importExcel, loanState, simulate, planPay, goldCalc, cardState, lendState, spendable, get S(){ return S; }};
 const h = location.hash.slice(1);
 const ROUTES = VIEWS.concat(['nw', 'save', 'asset', 'loan', 'gold', 'budget', 'accum', 'year', 'stat']);
 const importing = importFromHash();
