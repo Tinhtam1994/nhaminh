@@ -1,5 +1,5 @@
 // Nhà Mình – service worker: chạy offline, tự cập nhật ở lần mở sau
-const CACHE = 'nha-minh-v1793534640';
+const CACHE = 'nha-minh-v1793536635';
 const SHELL = ['./', './index.html', './exceljs.min.js', './manifest.webmanifest', './apple-touch-icon.png', './icon-192.png', './icon-512.png', ...['an-uong','con-cai','dich-vu-sinh-hoat','di-lai','qua-tang','mua-sam','y-te','giao-duc','giai-tri','nha-o','hoa-don','tiet-kiem','du-lich','luong','dau-tu','lam-dep','thu-cung','the-thao','cong-viec','khac'].map(s => './icons/' + s + '.webp')];
 
 self.addEventListener('install', e => {
@@ -20,5 +20,16 @@ self.addEventListener('fetch', e => {
     const hit = await c.match(req, {ignoreSearch: url.origin === location.origin});
     const net = fetch(req).then(res => { if (res && (res.ok || res.type === 'opaque')) c.put(req, res.clone()); return res; }).catch(() => hit);
     return hit || net;
+  }));
+});
+
+// Mimi nhắc: bấm vào thông báo thì mở app và đưa tới đúng việc cần làm
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const go = (e.notification.data && e.notification.data.go) || 'home';
+  e.waitUntil(self.clients.matchAll({type:'window', includeUncontrolled:true}).then(cs => {
+    const c = cs[0];
+    if (c) { c.postMessage({mimiGo:go}); return c.focus(); }
+    return self.clients.openWindow('./#mimi=' + encodeURIComponent(go));
   }));
 });

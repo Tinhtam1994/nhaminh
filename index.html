@@ -800,6 +800,14 @@ html.asklock,html.asklock body{overflow:hidden;overscroll-behavior:none}.sheet.a
 .fl-leg{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:12px;font-weight:700;color:var(--muted)}
 .fl-leg span{display:inline-flex;align-items:center;gap:5px}
 .fl-dash::before{content:"";width:16px;border-top:2px dashed color-mix(in srgb,var(--ink) 45%,transparent)}
+.mimicard{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:start;background:linear-gradient(135deg,var(--mint-soft),var(--card));border:1.5px solid color-mix(in srgb,var(--mint) 55%,transparent);border-radius:20px;padding:12px 14px;margin:0 0 12px;box-shadow:var(--shadow);animation:miIn .4s cubic-bezier(.2,1.2,.4,1) both}
+.mimicard .askav{width:44px;height:44px;padding:4px 4px 2px}
+.mimicard small{display:block;font-size:11px;font-weight:900;letter-spacing:.06em;color:var(--primary-ink)}
+.mimicard b{display:block;font-size:15.5px;font-weight:900;margin:1px 0 2px}
+.mimicard p{margin:0 0 9px;font-size:13.5px;font-weight:600;color:var(--muted);line-height:1.45}
+.mimirow{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;border:0;background:var(--card);box-shadow:var(--shadow);border-radius:16px;padding:11px 13px;margin-bottom:8px;color:var(--ink)}
+.mimirow b{font-size:14.5px;font-weight:800}.mimirow small{font-size:13px;font-weight:600;color:var(--muted);line-height:1.4}
+.mimit{font-size:11.5px;font-weight:800;color:var(--primary-ink)}
 </style>
 <script>
 /* Ngũ hành – design tokens. Màu Primary/Light/Soft cố định theo bảng; các token phụ được tính để bảo đảm tương phản. */
@@ -862,6 +870,7 @@ html.asklock,html.asklock body{overflow:hidden;overscroll-behavior:none}.sheet.a
     </div>
     <div class="hello2"><h2 id="helloName">Chào bạn 👋</h2><p id="helloSub">Cùng quản lý tài chính gia đình tốt hơn mỗi ngày nhé.</p></div>
     <div id="homeBanner"></div>
+    <div id="mimiCard"></div>
     <div class="hero" id="hero"></div>
     <div id="wasteCard"></div>
     <div class="hcard"><div class="hhead"><h3>Giao dịch hôm nay</h3><button class="link" data-go="tx">Xem tất cả <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button></div><div id="homeList"></div></div>
@@ -1038,6 +1047,7 @@ html.asklock,html.asklock body{overflow:hidden;overscroll-behavior:none}.sheet.a
       <label class="switch"><span>Cảnh báo theo ngân sách từng danh mục (tab Kế hoạch)</span><input type="checkbox" id="alBudget"></label>
       <label class="switch"><span>Hiện bảng tóm tắt cảnh báo mỗi ngày</span><input type="checkbox" id="alDaily"></label>
     </div>
+    <div class="card" id="notifCard"></div>
     <div class="card">
       <div class="row between"><h3>Các quỹ</h3><span class="tag" id="pctSum"></span></div>
       <div id="setFunds"></div>
@@ -1182,6 +1192,7 @@ function migrate(d){
   delete out.wishes;
   out.loans = d.loans || []; out.gold = d.gold || []; out.goldPrice = d.goldPrice || {}; out.savings = d.savings || []; out.assets = d.assets || []; out.nwSnap = d.nwSnap || {};
   out.lends = d.lends || [];
+  out.mimi = {sent:{}, log:[], seen:{}, ...(d.mimi || {})};
   out.cards = d.cards || []; out.cardPays = d.cardPays || []; out.lastCard = d.lastCard || null;
   out.inc = d.inc || []; out.budgets = d.budgets || {}; out.plans = d.plans || []; out.split = d.split || []; out.splitDone = d.splitDone || {};
   out.settings.alerts = {...base.settings.alerts, ...((d.settings || {}).alerts || {})};
@@ -1348,6 +1359,7 @@ function renderHome(){
   else if (!tdList.length && !S.noSpend.includes(today()) && new Date().getHours() >= 18) b = `<span class="pretty">Hôm nay chưa có khoản chi nào.</span><span class="acts"><button class="btn-s" data-act="noT">Hôm nay không chi</button></span>`;
   else if (S.tx.length >= 20 && Date.now() - (S.lastBackup || 0) > 30 * 864e5) b = `<span class="pretty">Đã hơn 30 ngày chưa sao lưu dữ liệu.</span><span class="acts"><button class="btn-s pri" data-act="backup">Sao lưu</button></span>`;
   $('#homeBanner').innerHTML = b ? `<div class="banner" style="margin:0 0 12px">${b}</div>` : '';
+  if (typeof renderMimiCard === 'function' && S.mimi) renderMimiCard();
 }
 function txRow(t){
   return `<button class="tx" data-id="${t.id}">${cic(t.type)}<span class="main"><div class="t1">${esc(t.detail)}</div><div class="t2"><span class="dot ${t.level}"></span>${LV[t.level].name}${t.card ? '<span class="cctag">💳 Thẻ</span>' : ''} · ${dayLabel(t.date)}${timeOf(t)}</div></span><span class="amt">- ${fmt(t.amount)} đ</span></button>`;
@@ -2848,6 +2860,7 @@ function renderSet(){
   $('#expYear').innerHTML = [...ys].sort().reverse().map(y => `<option>${y}</option>`).join('');
   $('#setAuto').checked = !!S.settings.auto1000; $('#setHide').checked = !!S.settings.hide;
   $('#setOwner').value = S.settings.owner || '';
+  renderNotifSet();
   const sum = pctTotal();
   $('#pctSum').textContent = `Tổng ${pctTxt(sum)}`; $('#pctSum').style.color = Math.abs(sum - 100) <= .005 ? '' : 'var(--out)';
   $('#setFunds').innerHTML = S.settings.funds.map((f, i) => `<button class="set-fund" data-fedit="${i}"><span><b>${esc(f.key)}</b><small>${esc(f.bank)}${fundShort(f) ? ` · ${esc(fundShort(f))}` : ''}</small></span><span class="p num">${pctTxt(f.pct * 100)}</span>${chevSvg}</button>`).join('');
@@ -3774,6 +3787,10 @@ const ASK = [
       (S.cards || []).forEach(c => { const x = cardState(c); if (x.stmt) r.push(`thẻ ${esc(c.name)} ${shortMoney(x.stmt)} hạn ${dM(x.due)}`); });
       return r.length ? `Sắp tới cần trả: ${r.slice(0, 4).join('; ')}.` : 'Hiện chưa có khoản vay hay sao kê thẻ nào cần trả.'; },
     acts:[{t:'Mở Vay nợ', f:() => go('loan')}], rel:['loanpay', 'cardpay']},
+  {id:'notif', q:'Bật thông báo, đổi giờ nhắc ở đâu?', k:['thong bao', 'nhac nho', 'gio nhac', 'bat thong bao', 'tat thong bao', 'notification', 'man hinh khoa', 'nhac toi', 'lich nhac', 'mimi nhac'],
+    no:['muc canh bao', 'canh bao chi'],
+    a:'Vào <b>Cài đặt → Thông báo Mimi</b>: bấm <b>Bật thông báo</b>, chọn nhóm muốn nhận (nhắc ghi chép, cảnh báo chi tiêu, đến hạn, lương, tổng kết, sao lưu), đổi <b>giờ nhắc ghi chép</b> và <b>giờ yên lặng</b>. Bấm <b>Lịch 7 ngày tới</b> để xem trước Mimi sẽ nhắc gì. Đã ghi chép thì Mimi không nhắc, mỗi ngày tối đa 2 thông báo.',
+    acts:[{t:'Mở cài đặt thông báo', f:() => goSet('#notifCard')}, {t:'Xem lịch 7 ngày tới', f:() => { go('set'); openMimiList('plan'); }}], rel:['alert', 'streak']},
   {id:'flow', q:'Xem biểu đồ chi tiêu theo ngày, tháng, thứ?', k:['bieu do', 'bien dong', 'theo ngay', 'theo thu', 'thu may', 'ngay nao chi nhieu', 'thu nao chi nhieu', 'cuoi tuan', 'xu huong', 'chart'],
     a:'Vào <b>Giao dịch → Tổng quan</b>, thẻ <b>Biến động chi tiêu</b> có 3 tab: <b>Theo ngày</b> (từng ngày trong tháng), <b>Theo tháng</b> (12 tháng gần nhất) và <b>Theo thứ</b> (trung bình mỗi thứ trong 3 tháng). Cột chia màu theo Cần thiết, Nên có, Lãng phí; đường nét đứt là mức trung bình. Bấm vào một cột để xem chi tiết.',
     acts:[{t:'Mở biểu đồ', f:() => { txSeg = 'ov'; curM = curYm(); go('tx'); hl('#flowCard'); }}], rel:['stat', 'month']},
@@ -3947,11 +3964,214 @@ document.addEventListener('click', e => { if (e.target.closest('[data-ask]')) { 
     fab.classList.add('tip'); setTimeout(() => fab.classList.remove('tip'), 5200); }, 2200);
 })();
 
-window.__app = {ask:askMatch, classify, exportExcel, importExcel, loanState, simulate, planPay, goldCalc, cardState, lendState, spendable, get S(){ return S; }};
+/* ================= Mimi nhắc: bộ tính kịch bản thông báo ================= */
+// Theo tài liệu tai-lieu/kich-ban-thong-bao-mimi.md. Tính lịch 15 ngày tới từ dữ liệu trên máy;
+// giai đoạn 1 hiện trong app (thẻ Mimi nhắc), giai đoạn 2 gửi lịch đã mã hóa lên máy chủ báo thức.
+const NF_DEF = {on:false, A:true, B:true, C:true, D:true, E:true, F:true, time:'21:00', qs:'22:00', qe:'07:00'};
+const NF = () => ({...NF_DEF, ...(S.settings.notif || {})});
+const NF_PRI = {C:0, B:1, D:2, A:3, E:4, F:5};
+const NF_GRP = {A:'Nhắc ghi chép', B:'Cảnh báo chi tiêu', C:'Đến hạn', D:'Lương và chia lương', E:'Tổng kết, động viên', F:'Sao lưu, giá vàng'};
+const pick = (arr, seed) => arr[Math.abs([...String(seed)].reduce((a, c) => a * 31 + c.charCodeAt(0) | 0, 7)) % arr.length];
+function mimiPlan(nowArg){
+  const now = nowArg || new Date(), t0 = ymd(now), nf = NF(), out = [];
+  const name = S.settings.owner || 'bạn', H = !!S.settings.hide, mm = x => H ? '' : shortMoney(x);
+  const sent = (S.mimi && S.mimi.sent) || {};
+  const sentSince = (key, days) => sent[key] && sent[key] >= addDays(t0, -days);
+  const add = (code, day, hm, title, body, go, key) => out.push({id:`${code}:${key || day}`, code, grp:code[0], at:`${day}T${hm}`, title, body, go, key:key || `${code}:${day}`});
+  const logged = d => S.tx.some(t => t.date === d) || S.noSpend.includes(d);
+  const lastOpen = (S.mimi && S.mimi.lastOpen) || t0;
+  const absent = Math.max(0, dBetween(lastOpen, t0));
+  // A. Nhắc ghi chép: 3 ngày tới nhắc mỗi tối; vắng mặt thì chỉ nhắc ở ngày 3, 7, 14 rồi dừng
+  const st = streak();
+  for (let i = 0; i < 3; i++) {
+    const d = addDays(t0, i); if (dBetween(lastOpen, d) >= 3) break; if (logged(d)) continue;
+    if (i === 0 && st >= 3) add('A2', d, nf.time, `🔥 Chuỗi ${st} ngày sắp mất!`, pick([`Ghi một khoản hoặc bấm “Không chi” để giữ chuỗi ${st} ngày nhé ${name}.`, `Còn chút nữa là hết ngày, đừng để đứt chuỗi ${st} ngày nha 🔥`], d), 'add');
+    else add('A1', d, nf.time, pick(['🏠 Hôm nay tiêu gì rồi?', 'Mimi chưa thấy khoản nào hôm nay', 'Ghi chi tiêu trước khi ngủ nhé'], d),
+      pick([`${name} ơi, ghi nhanh 30 giây với Mimi nhé!`, 'Có chi gì không, hay hôm nay tiết kiệm trọn ngày? 😊', 'Ghi lại ngay để mai không quên nha!'], d + 'b'), 'add');
+  }
+  if (!logged(addDays(t0, -1)) && !logged(t0) && S.tx.length) add('A3', t0, '08:00', 'Hôm qua bận quá hả?', 'Ghi bù trong 1 phút, chuỗi mới bắt đầu từ hôm nay 💪', 'addY');
+  const nextDow = (from, dow) => { let d = from; while (new Date(d + 'T12:00:00').getDay() !== dow) d = addDays(d, 1); return d; };
+  { const a3 = addDays(lastOpen, 3), a7 = nextDow(addDays(lastOpen, 7), 1), a14 = addDays(lastOpen, 14);
+    if (a3 >= t0) add('A5', a3, '20:30', `Mimi nhớ ${name} quá 🥺`, 'Ghi lại vài khoản mấy hôm nay nhé, Mimi đợi!', 'home', 'A5:' + lastOpen);
+    if (a7 >= t0) add('A6', a7, '08:30', 'Tuần mới, sổ mới! 🌱', 'Bắt đầu lại cùng Mimi từ hôm nay nhé.', 'home', 'A6:' + lastOpen);
+    if (a14 >= t0) add('A7', a14, '08:30', 'Bắt đầu lại nhé 🏠', `Mimi vẫn giữ nguyên sổ của ${name}. Ghi một khoản để quay lại nhịp nào!`, 'home', 'A7:' + lastOpen); }
+  // B. Cảnh báo chi tiêu (theo dữ liệu hôm nay, gửi 20:00; mỗi mốc 1 lần/tháng)
+  const ym = t0.slice(0, 7), bAt = now.getHours() < 20 ? '20:00' : null;
+  if (bAt) {
+    const w = wasteInfo(ym);
+    if (w.state === 'over' && !sent[`B2:${ym}`]) add('B2', t0, bAt, '🚨 Lãng phí đã vượt hạn mức', H ? 'Xem lại vài khoản gần đây cùng Mimi nhé.' : `Vượt ${mm(-w.left)} so với hạn mức ${mm(w.cap)}. Xem lại vài khoản gần đây nhé.`, 'waste', `B2:${ym}`);
+    else if (w.state === 'warn' && !sent[`B1:${ym}`]) add('B1', t0, bAt, '⚠️ Lãng phí gần chạm hạn mức', H ? 'Chậm lại chút nhé!' : `Đã ${mm(w.spent)}/${mm(w.cap)}, còn ${mm(w.left)} cho ${w.daysLeft} ngày. Chậm lại chút nhé!`, 'waste', `B1:${ym}`);
+    const sp = spendInfo(ym);
+    if (sp.state && !sent[`B3:${sp.state}:${ym}`]) add('B3', t0, bAt, sp.state === 'over' ? 'Tổng chi đã vượt mức tối đa' : `Tổng chi đạt ${Math.round(sp.pct * 100)}% mức tối đa`, H ? `Còn ${sp.daysLeft} ngày nữa mới hết tháng.` : `Tháng này đã chi ${mm(sp.spent)}/${mm(sp.cap)}. Còn ${sp.daysLeft} ngày nữa mới hết tháng.`, 'tx', `B3:${sp.state}:${ym}`);
+    if (AL().budget) budgetRows(ym).filter(r => r.b && stateOf(r.s, r.b)).forEach(r => { const s = stateOf(r.s, r.b), k = `B4:${s}:${short(r.c.name)}:${ym}`;
+      if (!sent[k]) add('B4', t0, bAt, `${short(r.c.name)} đã dùng ${Math.round(r.s / r.b * 100)}% ngân sách`, H ? 'Xem lại ngân sách tháng này nhé.' : `${mm(r.s)}/${mm(r.b)} trong tháng này.`, 'budget', k); });
+  }
+  { // B5: hôm nay chi đột biến so với trung bình 30 ngày (không tính trả nợ, trả thẻ)
+    const fixed = t => t.loanId || /trả nợ|tiền nhà|thuê nhà/i.test(t.type + ' ' + t.detail);
+    const day = S.tx.filter(t => t.date === t0 && !fixed(t)).reduce((a, t) => a + t.amount, 0);
+    const past = S.tx.filter(t => t.date < t0 && t.date >= addDays(t0, -30) && !fixed(t)).reduce((a, t) => a + t.amount, 0) / 30;
+    if (past > 0 && day > 2.5 * past && now.getHours() < 21 && !sent[`B5:${t0}`]) add('B5', t0, '21:00', `Hôm nay chi gấp ${(day / past).toFixed(1).replace('.', ',')} lần ngày thường`, H ? `Có khoản nào bất ngờ không ${name}?` : `Hôm nay ${mm(day)}, trung bình ${mm(past)}/ngày. Có khoản nào bất ngờ không ${name}?`, 'flowDay', `B5:${t0}`);
+  }
+  { // B6: theo đà chi hiện tại cuối tháng sẽ thiếu (từ ngày 10, thứ Tư 12:15, 1 lần/tuần)
+    const [y, mo] = ym.split('-').map(Number), dim = daysIn(y, mo), dn = now.getDate(), s = spendable(ym);
+    const spent = sums(txIn(ym)).all, rate = spent / dn, short_ = rate * (dim - dn) - s.left;
+    const wed = nextDow(t0, 3);
+    if (dn >= 10 && incomeOf(ym) && short_ > 0 && wed.slice(0, 7) === ym && !sentSince('B6', 6)) add('B6', wed, '12:15', 'Theo đà này cuối tháng sẽ thiếu', H ? 'Bớt chi một chút mỗi ngày là kịp cân lại 👍' : `Thiếu khoảng ${mm(short_)}. Mỗi ngày tiêu dưới ${mm(Math.max(0, s.left / Math.max(1, dim - dn + 1)))} là kịp cân lại 👍`, 'home', 'B6');
+  }
+  { // B7: cuối tuần chi nhiều — thứ Sáu 17:30, 2 tuần 1 lần
+    const acc = Array.from({length:7}, () => [0, 0]);
+    for (let i = 1; i <= 84; i++) { const d = addDays(t0, -i), w = new Date(d + 'T12:00:00').getDay(); acc[w][1]++; acc[w][0] += S.tx.filter(t => t.date === d).reduce((a, t) => a + t.amount, 0); }
+    const avg = acc.reduce((a, x) => a + x[0], 0) / 84, we = Math.max(acc[6][0] / acc[6][1], acc[0][0] / acc[0][1]);
+    if (avg > 0 && we > 1.5 * avg && S.tx.length >= 30 && !sentSince('B7', 13)) add('B7', nextDow(t0, 5), '17:30', 'Cuối tuần sắp tới rồi 🎈', `${name} thường chi cuối tuần gấp ${(we / avg).toFixed(1).replace('.', ',')} lần ngày thường. Lên kế hoạch trước nhé!`, 'flowWd', 'B7');
+  }
+  // C. Đến hạn
+  const inWin = d => d >= t0 && d <= addDays(t0, 14);
+  const ld = AL().loanDays ?? 3;
+  S.loans.forEach(L => { const x = loanState(L); if (x.done || !x.next) return; const due = x.next.due, amt = H ? '' : ` ${mm(x.next.total)}`;
+    [[addDays(due, -ld), 'C1', `📅 Còn ${ld} ngày tới kỳ trả ${L.name}`, `Kỳ này${amt || ' cần trả'}, hạn ${dM(due)}.`], [due, 'C2', `Hôm nay là hạn trả ${L.name}`, `Trả${amt} xong bấm ghi để Mimi trừ dư nợ nhé.`],
+     [addDays(due, 1), 'C3', `⏰ ${L.name} đã quá hạn 1 ngày`, 'Nếu đã trả rồi, bấm để ghi lại nhé.'], [addDays(due, 3), 'C3', `⏰ ${L.name} đã quá hạn 3 ngày`, 'Nếu đã trả rồi, bấm để ghi lại nhé.']]
+      .forEach(([d, c, ti, bo]) => { if (inWin(d)) add(c, d, '09:00', ti, bo, 'loanpay:' + L.id, `${c}:${L.id}:${due}:${d}`); }); });
+  (S.cards || []).forEach(c => { const x = cardState(c); if (!(x.stmt > 0)) return;
+    [[addDays(x.due, -3), `💳 Sao kê ${c.name} còn 3 ngày tới hạn`], [x.due, `💳 Hôm nay là hạn trả thẻ ${c.name}`]].forEach(([d, ti]) => { if (inWin(d)) add('C4', d, '09:00', ti, H ? 'Trả đủ để không mất phí lãi nhé.' : `Sao kê ${mm(x.stmt)}, hạn ${dM(x.due)}. Trả đủ để không mất phí lãi nhé.`, 'cardpay:' + c.id, `C4:${c.id}:${x.due}:${d}`); }); });
+  S.savings.filter(v => !v.closed).forEach(v => { const x = saveState(v); if (!x.maturity) return; const sd = AL().saveDays ?? 7;
+    [[addDays(x.maturity, -sd), `🐷 ${saveName(v)} còn ${sd} ngày đáo hạn`], [x.maturity, `🐷 ${saveName(v)} đáo hạn hôm nay`]].forEach(([d, ti]) => { if (inWin(d)) add('C6', d, '09:00', ti, 'Gửi tiếp hay rút về, quyết trước nhé.', 'save', `C6:${v.id}:${x.maturity}:${d}`); }); });
+  (S.lends || []).forEach(x => { const s = lendState(x); if (s.done || !x.due) return;
+    [[addDays(x.due, -1), `🤝 ${x.name} hẹn trả ngày mai`], [x.due, `🤝 Hôm nay ${x.name} hẹn trả`], [addDays(x.due, 3), `🤝 ${x.name} quá hẹn 3 ngày`]].forEach(([d, ti], i) => { if (inWin(d)) add('C7', d, '10:00', ti, i === 2 ? 'Khéo léo nhắc một câu nha. Nhận được tiền thì bấm ghi nhận.' : H ? 'Nhận được tiền thì bấm ghi nhận nhé.' : `Còn nợ ${mm(s.left)}. Nhận được tiền thì bấm ghi nhận nhé.`, 'lendpay:' + x.id, `C7:${x.id}:${x.due}:${d}`); }); });
+  (S.plans || []).forEach(p => { const s = planState(p); const d = addDays(p.deadline, -7); if (!s.done && inWin(d)) add('C8', d, '09:00', `Còn 7 ngày tới ${p.name}`, H ? `Mới để dành ${s.pct}%.` : `Mới để dành ${s.pct}%, cần thêm ${mm(s.left)}.`, 'accum', `C8:${p.id}:${p.deadline}`); });
+  // D. Lương và chia lương
+  { const sal = S.inc.filter(i => i.source === 'Lương' && i.date >= addDays(t0, -100) && !i.id.startsWith('imp-') && !i.id.startsWith('mig-')).map(i => Number(i.date.slice(8)));
+    if (sal.length && !incomeOf(ym)) { const day = sal.sort((a, b) => a - b)[Math.floor(sal.length / 2)]; let d = `${ym}-${pad(day)}`; if (d < t0) d = t0;
+      if (d.slice(0, 7) === ym && !sent[`D1:${ym}`]) add('D1', d, '18:00', '💰 Lương về chưa?', `${name} ghi lương rồi chia ngay vào các quỹ trước khi tiêu nhé!`, 'addIn', `D1:${ym}`); }
+    const inc1 = S.inc.filter(i => i.date.startsWith(ym)).sort((a, b) => a.date.localeCompare(b.date))[0];
+    if (inc1 && !(S.splitDone[ym] || []).length && !sent[`D2:${ym}`]) { let d = addDays(inc1.date, 2); if (d < t0) d = t0; add('D2', d, '20:00', 'Lương tháng này chưa chia 💸', 'Chia ngay để tiền tiết kiệm và trả nợ không bị tiêu lẫn.', 'alloc', `D2:${ym}`); } }
+  // E. Tổng kết và động viên
+  { const sun = nextDow(t0, 0), mon = addDays(sun, -6), wk = S.tx.filter(t => t.date >= mon && t.date <= sun), pv = S.tx.filter(t => t.date >= addDays(mon, -7) && t.date < mon);
+    const a = wk.reduce((s, t) => s + t.amount, 0), b = pv.reduce((s, t) => s + t.amount, 0), ch = b ? Math.round((a / b - 1) * 100) : null, wst = wk.filter(t => t.level === 'I').reduce((s, t) => s + t.amount, 0);
+    if (wk.length && !sent[`E1:${sun}`]) add('E1', sun, '20:00', ch !== null && ch <= 0 ? 'Tuần này chi ít hơn tuần trước 👏' : 'Tổng kết tuần của Mimi', H ? 'Xem lại tuần qua cùng Mimi nhé.' : `Chi ${mm(a)}${ch !== null ? ` (${ch > 0 ? '+' : ''}${ch}% so với tuần trước)` : ''}, lãng phí ${mm(wst)}.`, 'flowDay', `E1:${sun}`); }
+  { const first = shiftM(ym, 1) + '-01'; if (inWin(first) && txIn(ym).length) { const s = sums(txIn(ym)), p = sums(txIn(shiftM(ym, -1))), w = s.all ? Math.round(s.I / s.all * 100) : 0, pw = p.all ? Math.round(p.I / p.all * 100) : null;
+    add('E2', first, '09:00', `Tháng ${Number(ym.slice(5))} khép lại 🌱`, (H ? `Lãng phí ${w}% tổng chi.` : `Chi ${mm(s.all)}, lãng phí ${w}%.`) + (pw !== null && w < pw ? ` Giảm ${pw - w} điểm so với tháng trước, giỏi quá!` : ' Tháng mới, mục tiêu mới!'), 'stat', `E2:${ym}`); } }
+  if ([7, 30, 100, 365].includes(st) && logged(t0) && !sent[`E3:${st}:${t0}`]) add('E3', t0, now.getHours() < 20 ? '20:00' : `${pad(now.getHours())}:${pad(Math.min(59, now.getMinutes() + 1))}`, `🎉 ${st} ngày ghi chép liên tục!`, `${name} giỏi quá, Mimi tự hào lắm!`, 'home', `E3:${st}:${t0}`);
+  // F. Chăm sóc dữ liệu
+  if (S.tx.length >= 20 && Date.now() - (S.lastBackup || 0) > 30 * 864e5 && !sentSince('F1', 13)) add('F1', nextDow(t0, 0), '10:00', '💾 Đã hơn 30 ngày chưa sao lưu', 'Lưu một bản vào iCloud cho chắc nhé!', 'backup', 'F1');
+  { const held = Object.values(goldCalc().kinds).filter(k => k.qty > 0); const old = held.find(k => !k.priceDate || dBetween(k.priceDate, t0) > 30);
+    const d5 = (t0.slice(8) <= '05' ? ym : shiftM(ym, 1)) + '-05'; if (old && inWin(d5) && !sentSince('F2', 25)) add('F2', d5, '10:00', 'Giá vàng đã thay đổi nhiều 🪙', 'Cập nhật để xem tài sản thật hôm nay nhé.', 'goldprice', 'F2'); }
+  return mimiRules(out.filter(x => nf[x.grp] !== false), now, nf);
+}
+// Quy tắc chung: giờ yên lặng, bỏ giờ đã qua, tối đa 2 thông báo/ngày (gộp phần dư), tối đa 1 nhắc thói quen/ngày
+function mimiRules(list, now, nf){
+  const nowS = `${ymd(now)}T${pad(now.getHours())}:${pad(now.getMinutes())}`, quiet = hm => nf.qs > nf.qe ? hm >= nf.qs || hm < nf.qe : hm >= nf.qs && hm < nf.qe;
+  const items = []; const seen = new Set();
+  list.forEach(x => { if (seen.has(x.id)) return; seen.add(x.id); const hm = x.at.slice(11);
+    if (quiet(hm)) { if (x.grp === 'A') return; x.at = (hm >= nf.qs ? addDays(x.at.slice(0, 10), 1) : x.at.slice(0, 10)) + 'T07:30'; }
+    items.push(x); });
+  const byDay = {}; items.forEach(x => (byDay[x.at.slice(0, 10)] = byDay[x.at.slice(0, 10)] || []).push(x));
+  const out = [];
+  Object.values(byDay).forEach(l => {
+    l.sort((a, b) => NF_PRI[a.grp] - NF_PRI[b.grp] || a.at.localeCompare(b.at));
+    const hab = l.filter(x => x.grp === 'A'); const keep = l.filter(x => x.grp !== 'A' || x === hab[0]);
+    if (keep.length <= 2) { out.push(...keep); return; }
+    const rest = keep.slice(1);
+    out.push(keep[0], {id:'MG:' + rest.map(x => x.id).join('|'), code:'MG', grp:rest[0].grp, at:rest.map(x => x.at).sort()[0], key:'MG:' + rest[0].at.slice(0, 10),
+      title:`Mimi có ${rest.length} việc cho ${S.settings.owner || 'bạn'}`, body:rest.map(x => x.title.replace(/^\W+\s*/u, '')).join(' · '), go:'ask', parts:rest.map(x => ({key:x.key, title:x.title, body:x.body, go:x.go}))});
+  });
+  return out.filter(x => x.at >= nowS.slice(0, 10) + 'T00:00').sort((a, b) => a.at.localeCompare(b.at));
+}
+// Ghi nhận: thông báo đã tới giờ coi như đã gửi (để không lặp mốc), giữ nhật ký 40 mục gần nhất
+function mimiTick(){
+  S.mimi = S.mimi || {sent:{}, log:[], seen:{}};
+  const now = new Date(), nowS = `${ymd(now)}T${pad(now.getHours())}:${pad(now.getMinutes())}`, plan = mimiPlan(now);
+  let ch = false;
+  plan.filter(x => x.at <= nowS).forEach(x => { const ks = x.parts ? x.parts.map(p => p.key) : [x.key];
+    ks.forEach(k => { const base = k.replace(/:\d{4}-\d{2}-\d{2}.*$/, '').split(':')[0]; if (!S.mimi.sent[k]) { S.mimi.sent[k] = x.at.slice(0, 10); if (['B6', 'B7', 'F1', 'F2'].includes(base)) S.mimi.sent[base] = x.at.slice(0, 10); ch = true; } });
+    if (!S.mimi.log.some(l => l.id === x.id)) { S.mimi.log.unshift({id:x.id, code:x.code, at:x.at, title:x.title, body:x.body, go:x.go}); S.mimi.log = S.mimi.log.slice(0, 40); ch = true; } });
+  // dọn các mốc cũ hơn 100 ngày
+  Object.keys(S.mimi.sent).forEach(k => { if (S.mimi.sent[k] < addDays(today(), -100)) { delete S.mimi.sent[k]; ch = true; } });
+  if (ch) save();
+  return plan;
+}
+// Bấm vào thông báo (trong app, từ màn hình khóa, hoặc từ danh sách đã nhắc): mở đúng chỗ cần làm
+function mimiGo(k){
+  closeSheet(); const [a, id] = String(k || 'home').split(':');
+  const m = {add:() => goAdd('out'), addY:() => goAdd('out', addDays(today(), -1)), addIn:() => goAdd('in'), alloc:() => { go('stat'); openAlloc(0, curYm()); },
+    waste:() => { txSeg = 'ls'; lvFilter = 'I'; curM = curYm(); go('tx'); }, tx:() => { txSeg = 'ov'; curM = curYm(); go('tx'); }, budget:() => go('budget'),
+    flowDay:() => { txSeg = 'ov'; curM = curYm(); flowSeg = 'day'; flowSel = new Date().getDate() - 1; go('tx'); hl('#flowCard'); },
+    flowWd:() => { txSeg = 'ov'; curM = curYm(); flowSeg = 'wd'; flowSel = null; go('tx'); hl('#flowCard'); },
+    loanpay:() => { go('loan'); if (loanById(id)) openPay(id); }, cardpay:() => { go('loan'); if (cardById(id)) openCardPay(id); }, lendpay:() => { go('loan'); if (lendById(id)) openLendPay(id); },
+    save:() => go('save'), accum:() => go('accum'), stat:() => { txSeg = 'ov'; curM = shiftM(curYm(), -1); go('tx'); }, backup:() => goSet('#bkBtn'),
+    goldprice:() => { go('gold'); const g = Object.values(goldCalc().kinds).find(x => x.qty > 0); if (g) openGoldPrice(g.kind); }, ask:() => openAsk(), home:() => go('home')};
+  (m[a] || m.home)();
+}
+function openMimiItem(x){
+  if (!x.parts) return mimiGo(x.go);
+  sheet(`<div class="askhead" style="margin:-18px -16px 12px;border-radius:24px 24px 0 0"><span class="askav big">${mascot()}</span><div class="askttl"><b>${esc(x.title)}</b><small><i></i>Bấm từng việc để làm ngay</small></div><span></span><button class="askx" data-sa="close" aria-label="Đóng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    ${x.parts.map((p, i) => `<button class="mimirow" data-sa="p:${i}"><b>${esc(p.title)}</b><small>${esc(p.body)}</small></button>`).join('')}`,
+  a => { if (a.startsWith('p:')) mimiGo(x.parts[Number(a.slice(2))].go); });
+}
+// Thẻ "Mimi nhắc" trên Trang chủ: chỉ những kịch bản chưa có chỗ hiện khác trên Trang chủ
+const MIMI_INAPP = ['A2', 'B5', 'B6', 'B7', 'D1', 'E1', 'E2', 'E3', 'MG'];
+function renderMimiCard(){
+  const el = $('#mimiCard'); if (!el) return;
+  const now = new Date(), nowS = `${ymd(now)}T${pad(now.getHours())}:${pad(now.getMinutes())}`, seen = (S.mimi && S.mimi.seen) || {};
+  const due = (S.mimi && S.mimi.log || []).filter(x => x.at.slice(0, 10) === today() && x.at <= nowS && MIMI_INAPP.includes(x.code) && !seen[x.id]);
+  const x = due[0];
+  el.innerHTML = x ? `<div class="mimicard"><span class="askav">${mascot()}</span><div><small>MIMI NHẮC</small><b>${esc(x.title)}</b><p class="pretty">${esc(x.body)}</p>
+    <div class="row" style="gap:6px"><button class="btn-s pri" data-mimi="go">Xem ngay →</button><button class="btn-s" data-mimi="later">Để sau</button></div></div></div>` : '';
+  el.onclick = e => { const b = e.target.closest('[data-mimi]'); if (!b) return; S.mimi.seen[x.id] = today(); save(); if (b.dataset.mimi === 'go') openMimiItem(x); else renderMimiCard(); };
+}
+// Cài đặt → Thông báo Mimi
+const pushReady = () => 'serviceWorker' in navigator && 'Notification' in window;
+function renderNotifSet(){
+  const el = $('#notifCard'); if (!el) return; const nf = NF();
+  const perm = pushReady() ? Notification.permission : 'none';
+  const state = !pushReady() ? (/iPhone|iPad/.test(navigator.userAgent) && !standalone() ? 'Mở Nhà Mình từ biểu tượng trên màn hình chính để bật được thông báo.' : 'Thiết bị này chưa hỗ trợ thông báo. Mimi vẫn nhắc ngay trong app.')
+    : perm === 'granted' ? '✅ Đã cho phép thông báo. Máy chủ báo thức chưa kết nối nên hiện Mimi nhắc khi bạn mở app.' : perm === 'denied' ? 'Bạn đã từ chối thông báo. Muốn bật lại: xóa Nhà Mình khỏi màn hình chính rồi thêm lại.' : 'Bấm “Bật thông báo” để Mimi được phép nhắc trên màn hình khóa.';
+  el.innerHTML = `<h3>🔔 Thông báo Mimi</h3><p class="note pretty">${state}</p>
+    <div class="grid2">${perm === 'default' && pushReady() ? '<button class="btn pri" data-nf="ask">Bật thông báo</button>' : '<span></span>'}<button class="btn" data-nf="test">Gửi thử</button></div>
+    ${Object.entries(NF_GRP).map(([g, n]) => `<label class="switch"><span>${n}</span><input type="checkbox" data-nfg="${g}"${nf[g] !== false ? ' checked' : ''}></label>`).join('')}
+    <div class="grid2"><label class="field"><span>Giờ nhắc ghi chép</span><input class="inp" type="time" data-nft="time" value="${nf.time}"></label>
+    <label class="field"><span>Giờ yên lặng</span><span class="row" style="gap:4px"><input class="inp" type="time" data-nft="qs" value="${nf.qs}"><input class="inp" type="time" data-nft="qe" value="${nf.qe}"></span></label></div>
+    <div class="grid2"><button class="btn" data-nf="plan">📅 Lịch 7 ngày tới</button><button class="btn" data-nf="log">🗂️ Mimi đã nhắc</button></div>`;
+}
+function openMimiList(kind){
+  const now = new Date(), nowS = `${ymd(now)}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const list = kind === 'plan' ? mimiPlan(now).filter(x => x.at > nowS && x.at <= addDays(ymd(now), 7) + 'T23:59') : (S.mimi && S.mimi.log) || [];
+  const wd = d => ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][new Date(d + 'T12:00:00').getDay()];
+  sheet(`<h2>${kind === 'plan' ? '📅 Mimi sẽ nhắc 7 ngày tới' : '🗂️ Mimi đã nhắc'}</h2>
+    <p class="note pretty">${kind === 'plan' ? 'Lịch tự thay đổi theo dữ liệu: ghi chi, trả nợ hay chia lương xong thì thông báo tương ứng tự hủy.' : 'Bấm vào một thông báo để mở lại đúng việc cần làm.'}</p>
+    ${list.length ? list.map((x, i) => `<button class="mimirow" data-sa="i:${i}"><span class="mimit">${wd(x.at.slice(0, 10))} ${dM(x.at.slice(0, 10))} · ${x.at.slice(11)} · ${NF_GRP[x.code[0]] || 'Gộp nhiều việc'}</span><b>${esc(x.title)}</b><small>${esc(x.body)}</small></button>`).join('') : `<div class="empty">${kind === 'plan' ? 'Không có gì cần nhắc, mọi thứ đang ổn 🌿' : 'Chưa có thông báo nào.'}</div>`}
+    <button class="btn" data-sa="close" style="margin-top:10px">Đóng</button>`,
+  a => { if (a.startsWith('i:')) openMimiItem(list[Number(a.slice(2))]); });
+}
+async function mimiTest(){
+  const x = mimiPlan().find(i => i.grp !== 'F') || {title:'🏠 Mimi chào bạn!', body:'Thông báo đã hoạt động. Mimi sẽ nhắc đúng lúc cần.', go:'home'};
+  if (!pushReady() || Notification.permission !== 'granted') { toast(`Thông báo mẫu: ${esc(x.title)}`); return; }
+  const reg = await navigator.serviceWorker.ready;
+  await reg.showNotification(x.title, {body:x.body, icon:'icon-192.png', badge:'icon-192.png', tag:'mimi-test', data:{go:x.go}});
+  toast('Đã gửi thông báo thử');
+}
+$('#notifCard') && ($('#notifCard').onclick = async e => {
+  const b = e.target.closest('[data-nf]'); if (!b) return; const k = b.dataset.nf;
+  if (k === 'ask') { try { await Notification.requestPermission(); } catch (er) {} S.settings.notif = {...NF(), on:Notification.permission === 'granted'}; save(); renderNotifSet(); if (Notification.permission === 'granted') mimiTest(); }
+  if (k === 'test') mimiTest();
+  if (k === 'plan' || k === 'log') openMimiList(k);
+});
+$('#notifCard') && ($('#notifCard').onchange = e => {
+  const g = e.target.dataset.nfg, t = e.target.dataset.nft; if (!g && !t) return;
+  S.settings.notif = {...NF(), ...(g ? {[g]:e.target.checked} : {[t]:e.target.value || NF_DEF[t]})}; save(); mimiTick();
+});
+// Bấm thông báo trên màn hình khóa: service worker gửi tin nhắn hoặc mở app với #mimi=<việc>
+if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.mimiGo) mimiGo(e.data.mimiGo); });
+
+window.__app = {mimiPlan, mimiTick, ask:askMatch, classify, exportExcel, importExcel, loanState, simulate, planPay, goldCalc, cardState, lendState, spendable, get S(){ return S; }};
 const h = location.hash.slice(1);
 const ROUTES = VIEWS.concat(['nw', 'save', 'asset', 'loan', 'gold', 'budget', 'accum', 'year', 'stat']);
 const importing = importFromHash();
+// Mimi nhắc: ghi nhận các thông báo đã tới giờ, rồi đánh dấu hôm nay có mở app (dùng cho kịch bản vắng mặt)
+mimiTick(); if (S.mimi.lastOpen !== today()) { S.mimi.lastOpen = today(); save(); }
+const mimiHash = /^mimi=(.+)$/.exec(h);
 go(ROUTES.includes(h) ? h : 'home');
+if (mimiHash) { try { history.replaceState(null, '', location.pathname + location.search + '#home'); } catch (e) {} mimiGo(decodeURIComponent(mimiHash[1])); }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { mimiTick(); if (S.mimi.lastOpen !== today()) { S.mimi.lastOpen = today(); save(); } if (view === 'home') renderMimiCard(); } });
 window.addEventListener('hashchange', () => { const t = location.hash.slice(1); if (ROUTES.includes(t) && t !== view) go(t); });
 if (!canStore) $('#storageWarn').classList.remove('hidden');
 // Màn chào: hiện tối thiểu 0,9 giây từ lúc mở rồi mờ dần (bỏ qua khi chạy kiểm thử tự động; ?splash=1 giữ nguyên để chụp ảnh khởi động)
