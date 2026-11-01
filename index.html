@@ -823,13 +823,13 @@ html.asklock,html.asklock body{overflow:hidden;overscroll-behavior:none}.sheet.a
 .gpmine{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--mint-soft);border-radius:14px;padding:11px 13px;margin-top:10px;font-size:13.5px;font-weight:700}
 .gpmine b{font-size:18px;font-weight:900}
 .bellbtn{position:relative}
-.bellbtn .bdg{position:absolute;top:2px;right:1px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:var(--out);color:#fff;font-size:11px;font-weight:900;font-style:normal;display:grid;place-items:center;border:2px solid var(--bg);line-height:1}
-.bellbtn.ring svg{animation:bellRing 4s ease-in-out infinite;transform-origin:50% 8%}
+.bellbtn .bdg{position:absolute;top:-4px;right:-4px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:var(--out);color:#fff;font-size:11px;font-weight:900;font-style:normal;display:grid;place-items:center;border:2px solid var(--bg);line-height:1}
+.bellbtn.bell-shake svg{animation:bellRing 4s ease-in-out infinite;transform-origin:50% 8%}
 @keyframes bellRing{0%,86%,100%{transform:rotate(0)}88%{transform:rotate(14deg)}91%{transform:rotate(-12deg)}94%{transform:rotate(8deg)}97%{transform:rotate(-4deg)}}
 .mimirow.unread{border-left:4px solid var(--primary)}
 .bellrow{flex-direction:row;align-items:center;gap:10px}.bellrow .bic{font-size:18px;width:26px;text-align:center;flex-shrink:0}.bellrow b{font-size:14px}
 .bellrow.over{border-left:4px solid var(--out)}
-@media (prefers-reduced-motion:reduce){.bellbtn.ring svg{animation:none}}
+@media (prefers-reduced-motion:reduce){.bellbtn.bell-shake svg{animation:none}}
 #askFab .fabtip{white-space:normal;width:max-content;max-width:min(250px,calc(100vw - 110px));text-align:left;line-height:1.4;font-size:13.5px;padding:10px 13px}
 #askFab .fabtip em{display:block;font-style:normal;font-size:12px;opacity:.85;margin-top:4px}
 #askFab.talk .mimi .mi-m1{animation:none;opacity:0}#askFab.talk .mimi .mi-m2{animation:none;opacity:1;transform:none}
@@ -3145,7 +3145,7 @@ function bellItems(){
 function renderBell(){
   const b = $('#bellBdg'); if (!b) return; const it = bellItems(), n = it.unread + it.alerts.filter(x => x.lv === 'over').length;
   b.textContent = n > 9 ? '9+' : n; b.classList.toggle('hidden', !n);
-  $('#bellBtn').classList.toggle('ring', it.unread > 0);
+  $('#bellBtn').classList.toggle('bell-shake', it.unread > 0);
 }
 function openBell(tab){
   tab = tab || 'new'; const it = bellItems(), read = (S.mimi && S.mimi.readAt) || '';
