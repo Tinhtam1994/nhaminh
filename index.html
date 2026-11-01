@@ -2903,7 +2903,8 @@ function go(v){
 /* ================= Sự kiện ================= */
 document.addEventListener('click', e => {
   if (e.target.closest('#layer')) return;
-  const g = e.target.closest('[data-go]'); if (g) { e.preventDefault(); if (g.dataset.go === 'add' && view !== 'add') F.mode = 'out'; go(g.dataset.go); return; }
+  const g = e.target.closest('[data-go]'); if (g) { e.preventDefault(); if (g.dataset.go === 'add' && view !== 'add') F.mode = 'out';
+    if (view === 'home' && ['tx', 'stat'].includes(g.dataset.go)) { curM = today().slice(0, 7); if (g.dataset.go === 'tx') txSeg = 'ov'; } /* Trang chủ luôn nói về tháng này */ go(g.dataset.go); return; }
   const t = e.target.closest('.tx[data-id]'); if (t) { openEdit(t.dataset.id); return; }
   const ic = e.target.closest('[data-inc]'); if (ic) { openIncome(ic.dataset.inc); return; }
   const a = e.target.closest('[data-act]'); if (a) {
