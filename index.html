@@ -419,7 +419,7 @@ body.typing #v-add .padbox{display:none}
 #v-add .ct.more .em{width:25px;height:25px;font-size:12px}
 @media (max-height:720px){
   body.focus #v-add .titlebar{padding-top:calc(6px + env(safe-area-inset-top));padding-bottom:4px}
-  #v-add .amtrow:has(.paywith.hidden){display:none}
+  #v-add .amtrow{margin:2px 2px 3px}#v-add .amtrow #hint1000{display:none}#v-add .xbtn{height:26px}
   #v-add .catrow{margin-bottom:0}
   #v-add .levels{margin-top:8px}
   #v-add .lv{height:40px}
@@ -808,6 +808,20 @@ html.asklock,html.asklock body{overflow:hidden;overscroll-behavior:none}.sheet.a
 .mimirow{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;border:0;background:var(--card);box-shadow:var(--shadow);border-radius:16px;padding:11px 13px;margin-bottom:8px;color:var(--ink)}
 .mimirow b{font-size:14.5px;font-weight:800}.mimirow small{font-size:13px;font-weight:600;color:var(--muted);line-height:1.4}
 .mimit{font-size:11.5px;font-weight:800;color:var(--primary-ink)}
+.xbtn{flex-shrink:0;width:34px;height:30px;border-radius:10px;border:1.5px solid var(--line);background:var(--card) center/cover no-repeat;display:inline-grid;place-items:center;font-size:15px;margin-left:6px;cursor:pointer;position:relative;color:var(--ink)}
+.xbtn.on{border-color:var(--primary-deep);box-shadow:0 0 0 2px color-mix(in srgb,var(--mint) 45%,transparent)}
+.xbtn small{position:absolute;right:-6px;top:-7px;min-width:17px;height:17px;border-radius:9px;background:var(--primary-deep);color:#fff;font-size:10.5px;font-weight:900;display:grid;place-items:center;padding:0 3px}
+#v-add .amtrow{display:flex;align-items:center}#v-add .amtrow #amtLbl{margin-right:auto}
+.phview{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.92);display:grid;place-items:center;padding:calc(20px + env(safe-area-inset-top)) 12px 20px}
+.phview img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px}
+.phview button{position:absolute;top:calc(12px + env(safe-area-inset-top));right:14px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.18);color:#fff;font-size:18px}
+.phprev{display:block;width:100%;max-height:52dvh;object-fit:contain;border-radius:14px;background:var(--soft)}
+.ephoto{display:flex;gap:10px;align-items:center}
+.phthumb{width:76px;height:76px;flex-shrink:0;border:0;border-radius:12px;background:var(--soft) center/cover no-repeat;box-shadow:var(--shadow)}
+.phacts{display:flex;flex-wrap:wrap;gap:6px}.phacts .btn-s{box-shadow:var(--shadow)}
+.gprow{display:grid;grid-template-columns:1fr 118px 30px;gap:6px;align-items:center;margin-bottom:6px}
+.gpmine{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--mint-soft);border-radius:14px;padding:11px 13px;margin-top:10px;font-size:13.5px;font-weight:700}
+.gpmine b{font-size:18px;font-weight:900}
 </style>
 <script>
 /* Ngũ hành – design tokens. Màu Primary/Light/Soft cố định theo bảng; các token phụ được tính để bảo đảm tương phản. */
@@ -930,7 +944,7 @@ html.asklock,html.asklock body{overflow:hidden;overscroll-behavior:none}.sheet.a
     </div>
     <label class="notecard"><span class="nic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg></span><span class="nb"><small><span id="noteLbl">Nội dung chi</span> <span class="ai hidden" id="aiLine"></span></small><input id="detail" placeholder="Ví dụ: Ăn trưa với đồng nghiệp" autocomplete="off" enterkeyhint="done"></span><button class="x hidden" id="detailClear" aria-label="Xóa ghi chú">✕</button></label>
     <div class="padbox" id="padbox">
-    <div class="lbl2 amtrow"><span id="amtLbl">Số tiền</span><span class="muted" id="hint1000" style="font-size:11.5px;font-weight:700"></span><button class="paywith hidden" id="payWith"></button></div>
+    <div class="lbl2 amtrow"><span id="amtLbl">Số tiền</span><span class="muted" id="hint1000" style="font-size:11.5px;font-weight:700"></span><button class="paywith hidden" id="payWith"></button><label class="xbtn" id="photoBtn" aria-label="Gắn ảnh hóa đơn"><span id="photoIc">📷</span><input type="file" accept="image/*" id="photoIn" hidden></label><button class="xbtn" id="groupBtn" aria-label="Chia nhóm">👥</button></div>
     <div class="amtbox empty" id="amountBox"><span class="v"><span id="amountTxt">0</span><small id="exprTxt"></small></span><button class="x" id="amtClear" aria-label="Xóa số tiền">✕</button><span class="cur">đ</span></div>
     <div class="qamt" id="qamt"></div>
     <div class="keys2" id="keys">
@@ -1189,7 +1203,7 @@ function migrate(d){
     out.goals = {};
     for (const [y, w] of Object.entries(d.wishes)) out.goals[y] = [...(w.plan || []).map(x => ({id:x.id, name:x.name, plan:x.amount || 0, spent:0, done:false})), ...(w.big || []).map(x => ({id:x.id, name:x.name, plan:0, spent:x.amount || 0, done:true}))];
   }
-  delete out.wishes;
+  delete out.wishes; delete out.photos;
   out.loans = d.loans || []; out.gold = d.gold || []; out.goldPrice = d.goldPrice || {}; out.savings = d.savings || []; out.assets = d.assets || []; out.nwSnap = d.nwSnap || {};
   out.lends = d.lends || [];
   out.mimi = {sent:{}, log:[], seen:{}, ...(d.mimi || {})};
@@ -1362,7 +1376,7 @@ function renderHome(){
   if (typeof renderMimiCard === 'function' && S.mimi) renderMimiCard();
 }
 function txRow(t){
-  return `<button class="tx" data-id="${t.id}">${cic(t.type)}<span class="main"><div class="t1">${esc(t.detail)}</div><div class="t2"><span class="dot ${t.level}"></span>${LV[t.level].name}${t.card ? '<span class="cctag">💳 Thẻ</span>' : ''} · ${dayLabel(t.date)}${timeOf(t)}</div></span><span class="amt">- ${fmt(t.amount)} đ</span></button>`;
+  return `<button class="tx" data-id="${t.id}">${cic(t.type)}<span class="main"><div class="t1">${esc(t.detail)}</div><div class="t2"><span class="dot ${t.level}"></span>${LV[t.level].name}${t.card ? '<span class="cctag">💳 Thẻ</span>' : ''}${t.split ? `<span class="cctag">👥 ${t.split.n}</span>` : ''}${t.photo ? '<span class="cctag">📷</span>' : ''} · ${dayLabel(t.date)}${timeOf(t)}</div></span><span class="amt">- ${fmt(t.amount)} đ</span></button>`;
 }
 
 /* ================= GHI NHANH ================= */
@@ -1387,11 +1401,13 @@ function renderAmount(){
   $('#exprTxt').textContent = c.ops ? c.pretty + (/[+−×]$/.test(F.expr) ? ' ' + F.expr.slice(-1) : '') : '';
   $$('#levels .lv').forEach(b => b.classList.toggle('on', b.dataset.lv === F.level));
   $('#saveBtn').disabled = !(v > 0);
+  if (typeof renderExtras === 'function') renderExtras();
   const w = wasteInfo((F.date || today()).slice(0, 7));
   $('#lvIhint').textContent = !w.cap ? 'HẠN CHẾ' : w.left - v < 0 ? `VƯỢT ${shortMoney(v - w.left).toUpperCase()}` : `CÒN ${shortMoney(w.left).toUpperCase()}`;
 }
 function key(k){
   vibe();
+  if (F.split) { F.split = null; F.expr = ''; toast('Đã bỏ chia nhóm. Nhập lại số tiền hoặc bấm 👥 để chia lại'); }
   if (F.prefill) { F.prefill = false; if (/^\d/.test(k)) F.expr = ''; }
   if (k === 'back') F.expr = F.expr.slice(0, -1);
   else if (k === 'C') F.expr = '';
@@ -1524,15 +1540,16 @@ function applySug(s){
   if (!amountVal() && s.a) F.expr = String(S.settings.auto1000 && s.a % 1000 === 0 && s.a < 1e6 ? s.a / 1000 : s.a);
   setType((catOf(s.c) || {}).name || s.c || 'Khác'); renderSugs();
 }
-function resetForm(){ Object.assign(F, {prefill:false, expr:'', detail:'', type:null, level:null, fund:null, fundTouched:false, typed:false, typeManual:false, card:cardById(S.lastCard) ? S.lastCard : null}); if ($('#aiLine')) $('#aiLine').classList.add('hidden'); $('#detail').value = ''; $('#detailClear').classList.add('hidden'); }
+function resetForm(){ if (F.photo) URL.revokeObjectURL(F.photo.url); Object.assign(F, {photo:null, split:null, prefill:false, expr:'', detail:'', type:null, level:null, fund:null, fundTouched:false, typed:false, typeManual:false, card:cardById(S.lastCard) ? S.lastCard : null}); if ($('#aiLine')) $('#aiLine').classList.add('hidden'); $('#detail').value = ''; $('#detailClear').classList.add('hidden'); }
 function commit(level){
   const v = amountVal(); if (!v) return;
   if (!F.type) { openCatPicker(level); return; }
   const f = F.fund || defaultFundFor(F.type);
   const c = calc();
   const t = {id:uid(), date:F.date || today(), detail:(F.detail || short(F.type)).trim(), type:F.type, fund:fundLabel(f), level, amount:v, ...(cardById(F.card) ? {card:F.card} : {}), expr:c.ops && c.total === v ? c.formula : '', created:Date.now()};
-  S.tx.push(t); S.noSpend = S.noSpend.filter(d => d !== t.date); save();
-  const undo = () => { S.tx = S.tx.filter(x => x.id !== t.id); save(); render(); };
+  S.tx.push(t); const made = commitExtras(t); S.noSpend = S.noSpend.filter(d => d !== t.date); save();
+  const undo = () => { S.tx = S.tx.filter(x => x.id !== t.id); if (t.photo) photoDel(t.id); S.lends = (S.lends || []).filter(x => !made.includes(x.id)); save(); render(); };
+  if (made.length) { toast(`Đã ghi phần của bạn ${fmt(v)} đ · ${made.length} người nợ lại ${fmt(t.split.total - v)} đ`, 'Hoàn tác', undo, 6000); const keepDate = F.date; resetForm(); F.date = keepDate; render(); return; }
   if (!wasteToastAfterSave(t, undo) && !budgetToastAfterSave(t, undo) && !spendToastAfterSave(t, undo)) toast(`Đã ghi ${fmt(v)} đ · ${esc(t.detail)}`, 'Hoàn tác', undo);
   const keepDate = F.date; resetForm(); F.date = keepDate; render();
 }
@@ -2888,10 +2905,13 @@ function openEdit(id){
     <label class="field"><span>Quỹ</span><select class="inp" id="eF">${S.settings.funds.map(f => `<option value="${esc(fundLabel(f))}"${fundOfLabel(t.fund)?.key === f.key ? ' selected' : ''}>${esc(fundLabel(f))}</option>`).join('')}</select></label>
     <div class="field"><span>Mức độ</span><div class="seg3">${['G','H','I'].map(k => `<button class="${k}${k === lv ? ' on' : ''}" data-sa="lv${k}">${LV[k].name}</button>`).join('')}</div></div>
     ${(() => { const gl = Object.entries(S.goals).filter(([y]) => Number(y) >= Number(t.date.slice(0, 4)) - 1).flatMap(([y, l]) => l.map(g => [y, g])); return gl.length ? `<label class="field"><span>Tính vào mục tiêu năm</span><select class="inp" id="eG"><option value="">Không</option>${gl.map(([y, g]) => `<option value="${g.id}"${t.goalId === g.id ? ' selected' : ''}>${esc(g.name)} (${y})</option>`).join('')}</select></label>` : ''; })()}
+    ${t.split ? `<p class="note pretty">👥 Chia ${t.split.n} người, tổng hóa đơn ${fmt(t.split.total)} đ. Số tiền ở trên là phần của bạn; phần của mọi người nằm ở Tài sản → Vay nợ.</p>` : ''}
+    <div class="field"><span>Ảnh</span><div id="ePh" class="ephoto"></div></div>
     <div class="grid2"><button class="btn danger" data-sa="del">Xóa khoản này</button><button class="btn pri" data-sa="save">Lưu</button></div>`,
   (a, b) => {
+    if (a.startsWith('ph:')) return editPhotoAct(t, a);
     if (a.startsWith('lv')) { lv = a.slice(2); $$('.seg3 button').forEach(x => x.classList.toggle('on', x === b)); return; }
-    if (a === 'del') { if (confirm(t.loanId ? 'Xóa khoản chi này? Lần trả nợ tương ứng trong Khoản vay cũng bị xóa.' : 'Xóa khoản chi này?')) { S.tx = S.tx.filter(x => x.id !== id); if (t.loanId) { const L = loanById(t.loanId); if (L) L.payments = (L.payments || []).filter(p => p.txId !== id); } save(); closeSheet(); render(); } return; }
+    if (a === 'del') { if (confirm(t.loanId ? 'Xóa khoản chi này? Lần trả nợ tương ứng trong Khoản vay cũng bị xóa.' : 'Xóa khoản chi này?')) { S.tx = S.tx.filter(x => x.id !== id); if (t.photo) photoDel(id); S.lends = (S.lends || []).filter(x => !(x.txId === id && !(x.pays || []).length)); if (t.loanId) { const L = loanById(t.loanId); if (L) L.payments = (L.payments || []).filter(p => p.txId !== id); } save(); closeSheet(); render(); } return; }
     if (a === 'save') {
       const amt = parseMoney($('#eA').value); if (!amt) { toast('Số tiền chưa hợp lệ'); return; }
       Object.assign(t, {detail:$('#eD').value.trim() || short($('#eC').value), amount:amt, date:$('#eDt').value || t.date, type:$('#eC').value, fund:$('#eF').value, level:lv});
@@ -2901,6 +2921,7 @@ function openEdit(id){
       save(); closeSheet(); render(); toast('Đã cập nhật');
     }
   });
+  editPhotoInit(t);
 }
 let toastTimer;
 function toast(html, act, fn, ms){
@@ -2978,6 +2999,126 @@ $('#flowCard').onclick = e => {
   const c = e.target.closest('[data-fi]'); if (c) { const i = Number(c.dataset.fi); flowSel = flowSel === i ? null : i; renderFlow(); }
 };
 
+/* ================= Ảnh hóa đơn (lưu trong IndexedDB, không chiếm chỗ dữ liệu chính) ================= */
+const PDB = (() => { let p; return () => p || (p = new Promise((res, rej) => { const r = indexedDB.open('nha-minh-anh', 1); r.onupgradeneeded = () => r.result.createObjectStore('p'); r.onsuccess = () => res(r.result); r.onerror = () => { p = null; rej(r.error); }; })); })();
+const pdbDo = (mode, fn) => PDB().then(db => new Promise((res, rej) => { const tx = db.transaction('p', mode), st = tx.objectStore('p'); const r = fn(st); tx.oncomplete = () => res(r && 'result' in r ? r.result : undefined); tx.onerror = () => rej(tx.error); }));
+const photoPut = (k, b) => pdbDo('readwrite', st => st.put(b, k));
+const photoGet = k => pdbDo('readonly', st => st.get(k));
+const photoDel = k => pdbDo('readwrite', st => st.delete(k)).catch(() => {});
+const photoAll = () => PDB().then(db => new Promise((res, rej) => { const out = [], r = db.transaction('p').objectStore('p').openCursor(); r.onsuccess = () => { const c = r.result; if (c) { out.push([c.key, c.value]); c.continue(); } else res(out); }; r.onerror = () => rej(r.error); }));
+const blobUrl = b => b ? URL.createObjectURL(b) : '';
+const toDataUrl = b => new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result); f.readAsDataURL(b); });
+// Thu nhỏ ảnh: cạnh dài tối đa 1280px, JPEG ~0,72 (ảnh hóa đơn khoảng 100–250 KB)
+function shrinkPhoto(file){
+  return new Promise((res, rej) => { const u = URL.createObjectURL(file), img = new Image();
+    img.onload = () => { const k = Math.min(1, 1280 / Math.max(img.naturalWidth, img.naturalHeight)), c = document.createElement('canvas');
+      c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(u); c.toBlob(b => b ? res(b) : rej(new Error('ảnh')), 'image/jpeg', .72); };
+    img.onerror = () => { URL.revokeObjectURL(u); rej(new Error('Không đọc được ảnh')); }; img.src = u; });
+}
+function viewPhoto(url){
+  const v = document.createElement('div'); v.className = 'phview'; v.innerHTML = `<img src="${url}" alt="Ảnh khoản chi"><button aria-label="Đóng">✕</button>`;
+  v.onclick = () => v.remove(); document.body.appendChild(v);
+}
+async function pickPhoto(input){
+  const f = input.files && input.files[0]; input.value = ''; if (!f) return null;
+  try { const b = await shrinkPhoto(f); return b; } catch (e) { toast('Không đọc được ảnh này'); return null; }
+}
+// Màn ghi chi: nút 📷 và 👥 cạnh ô số tiền
+function renderExtras(){
+  const pb = $('#photoBtn'), gb = $('#groupBtn'); if (!pb) return;
+  pb.classList.toggle('on', !!F.photo); pb.style.backgroundImage = F.photo ? `url("${F.photo.url}")` : ''; $('#photoIc').textContent = F.photo ? '' : '📷';
+  gb.classList.toggle('on', !!F.split); gb.innerHTML = F.split ? `👥<small>${F.split.people.length + 1}</small>` : '👥';
+  $('#amtLbl').textContent = F.mode === 'in' ? 'Số tiền thu' : F.split ? `Phần của bạn · tổng ${shortMoney(F.split.total)}` : 'Số tiền';
+  pb.classList.toggle('hidden', F.mode === 'in'); gb.classList.toggle('hidden', F.mode === 'in');
+}
+$('#photoIn').onchange = async e => { const b = await pickPhoto(e.target); if (!b) return; if (F.photo) URL.revokeObjectURL(F.photo.url); F.photo = {blob:b, url:blobUrl(b)}; renderExtras(); toast('Đã gắn ảnh, bấm Lưu để ghi khoản chi'); };
+$('#photoBtn').onclick = e => {
+  if (!F.photo) return; e.preventDefault();
+  sheet(`<h2>📷 Ảnh khoản chi</h2><img class="phprev" src="${F.photo.url}" alt="">
+    <div class="grid2" style="margin-top:12px"><button class="btn danger" data-sa="rm">Bỏ ảnh</button><label class="btn">Đổi ảnh<input type="file" accept="image/*" id="phSwap" hidden></label></div>
+    <button class="btn pri" data-sa="close" style="margin-top:8px">Xong</button>`,
+  a => { if (a === 'rm') { URL.revokeObjectURL(F.photo.url); F.photo = null; closeSheet(); renderExtras(); } });
+  $('#phSwap').onchange = async ev => { const b = await pickPhoto(ev.target); if (!b) return; URL.revokeObjectURL(F.photo.url); F.photo = {blob:b, url:blobUrl(b)}; closeSheet(); renderExtras(); };
+};
+
+/* ================= Chia nhóm: mình trả hết, bạn bè trả lại sau ================= */
+// Khoản chi = phần của mình; phần của từng người thành khoản "Người khác nợ mình"
+function openGroupSplit(){
+  let total = F.split ? F.split.total : amountVal();
+  let people = F.split ? F.split.people.map(p => ({...p})) : [{name:'', amount:0, manual:false}];
+  const recent = [...new Set((S.lends || []).slice().reverse().map(x => x.name))].slice(0, 8);
+  const even = () => { const auto = people.filter(p => !p.manual), fixed = people.filter(p => p.manual).reduce((a, p) => a + p.amount, 0);
+    const share = Math.round((total - fixed) / (auto.length + 1) / 1000) * 1000; auto.forEach(p => p.amount = Math.max(0, share)); };
+  const mine = () => total - people.reduce((a, p) => a + (p.amount || 0), 0);
+  const draw = () => {
+    $('#gpList').innerHTML = people.map((p, i) => `<div class="gprow"><input class="inp" data-gn="${i}" value="${esc(p.name)}" placeholder="Tên người ${i + 1}" autocomplete="off">
+      <input class="inp money" data-ga="${i}" inputmode="numeric" value="${p.amount ? fmt(p.amount) : ''}" placeholder="0"><button class="x-btn" data-sa="del:${i}" aria-label="Bỏ người này">✕</button></div>`).join('');
+    drawSum();
+  };
+  const drawSum = () => { const m = mine(); $('#gpMine').innerHTML = `<span>Phần của bạn (ghi là khoản chi)</span><b class="num" style="color:${m < 0 ? 'var(--out)' : 'var(--ink)'}">${fmt(m)} đ</b>`;
+    $('#gpOwe').textContent = people.filter(p => p.amount > 0).length ? `${people.filter(p => p.amount > 0).length} người nợ bạn tổng ${fmt(total - m)} đ, ghi vào Người khác nợ mình.` : ''; };
+  sheet(`<h2>👥 Chia nhóm</h2>
+    <p class="note pretty">Bạn trả cả hóa đơn, mọi người trả lại sau. Nhà Mình chỉ ghi <b>phần của bạn</b> là khoản chi, phần của từng người được ghi vào <b>Người khác nợ mình</b>.</p>
+    <label class="field"><span>Tổng hóa đơn</span><input class="inp money" id="gpTot" inputmode="numeric" value="${total ? fmt(total) : ''}" placeholder="vd: 1.200.000"></label>
+    <div class="subh">NGƯỜI CÙNG CHIA (KHÔNG TÍNH BẠN)</div>
+    <div id="gpList"></div>
+    ${recent.length ? `<div class="chips" style="margin:2px -16px 6px">${recent.map(n => `<button class="chip" data-sa="nm:${esc(n)}">＋ ${esc(n)}</button>`).join('')}</div>` : ''}
+    <div class="grid2"><button class="btn" data-sa="add">＋ Thêm người</button><button class="btn" data-sa="even">Chia đều lại</button></div>
+    <div class="gpmine" id="gpMine"></div><p class="note" id="gpOwe" style="margin:4px 2px 10px"></p>
+    <div class="grid2">${F.split ? '<button class="btn danger" data-sa="off">Bỏ chia nhóm</button>' : '<button class="btn" data-sa="close">Hủy</button>'}<button class="btn pri" data-sa="ok">Xong</button></div>`,
+  a => {
+    if (a === 'add' || a.startsWith('nm:')) { const nm = a.startsWith('nm:') ? a.slice(3) : ''; const empty = people.find(p => !p.name);
+      if (nm && people.some(p => p.name === nm)) return; if (nm && empty) empty.name = nm; else people.push({name:nm, amount:0, manual:false}); even(); draw(); return; }
+    if (a.startsWith('del:')) { people.splice(Number(a.slice(4)), 1); if (!people.length) people.push({name:'', amount:0, manual:false}); even(); draw(); return; }
+    if (a === 'even') { people.forEach(p => p.manual = false); even(); draw(); return; }
+    if (a === 'off') { F.expr = String(F.split.total); F.split = null; closeSheet(); renderAmount(); return; }
+    if (a === 'ok') {
+      people = people.filter(p => p.name.trim() || p.amount); people.forEach(p => p.name = p.name.trim());
+      if (!total) { toast('Nhập tổng hóa đơn'); return; }
+      if (!people.length) { toast('Thêm ít nhất 1 người cùng chia'); people = [{name:'', amount:0, manual:false}]; draw(); return; }
+      if (people.some(p => !p.name)) { toast('Nhập tên cho từng người'); draw(); return; }
+      if (mine() <= 0) { toast('Phần của bạn phải lớn hơn 0'); return; }
+      if (!people.some(p => p.amount > 0)) { toast('Chưa có ai nợ lại. Nhập số tiền cho từng người'); draw(); return; }
+      F.split = {total, people:people.map(p => ({name:p.name, amount:p.amount}))}; F.expr = String(mine()); F.prefill = false; closeSheet(); renderAmount();
+      toast(`Phần của bạn ${fmt(mine())} đ · ${people.length} người nợ lại`);
+    }
+  });
+  even(); draw();
+  $('#layer').oninput = e => {
+    if (e.target.id === 'gpTot') { total = parseMoney(e.target.value) || 0; even(); people.forEach((p, i) => { const el = $(`[data-ga="${i}"]`); if (el && document.activeElement !== el) el.value = p.amount ? fmt(p.amount) : ''; }); drawSum(); }
+    if (e.target.dataset.gn !== undefined) people[Number(e.target.dataset.gn)].name = e.target.value;
+    if (e.target.dataset.ga !== undefined) { const p = people[Number(e.target.dataset.ga)]; p.amount = parseMoney(e.target.value) || 0; p.manual = true; drawSum(); }
+  };
+}
+$('#groupBtn').onclick = e => { e.preventDefault(); openGroupSplit(); };
+// Sau khi ghi khoản chi: lưu ảnh, tạo khoản cho vay cho từng người cùng chia
+function commitExtras(t){
+  const made = [];
+  if (F.photo) { t.photo = 1; photoPut(t.id, F.photo.blob).catch(() => { delete t.photo; save(); toast('Máy không cho lưu ảnh (đang ở chế độ riêng tư?)'); }); }
+  if (F.split) {
+    t.split = {total:F.split.total, n:F.split.people.length + 1};
+    S.lends = S.lends || [];
+    F.split.people.filter(p => p.amount > 0).forEach(p => { const x = {id:uid() + made.length, name:p.name, amount:p.amount, date:t.date, due:'', note:`${t.detail} ${dM(t.date)} · tổng ${shortMoney(F.split.total)}`, pays:[], txId:t.id}; S.lends.push(x); made.push(x.id); });
+  }
+  return made;
+}
+
+// Sửa khoản chi: xem, thêm, đổi, xóa ảnh
+async function editPhotoInit(t){
+  const el = $('#ePh'); if (!el) return; let url = '';
+  if (t.photo) { try { url = blobUrl(await photoGet(t.id)); } catch (e) {} }
+  if (!$('#ePh')) return;
+  el.innerHTML = url ? `<button class="phthumb" data-sa="ph:view" style="background-image:url('${url}')" aria-label="Xem ảnh"></button><div class="phacts"><button class="btn-s" data-sa="ph:view">Xem ảnh</button><label class="btn-s">Đổi ảnh<input type="file" accept="image/*" id="ePhIn" hidden></label><button class="btn-s" data-sa="ph:del" style="color:var(--out)">Xóa ảnh</button></div>`
+    : `<label class="btn" style="width:100%">📷 Thêm ảnh hóa đơn<input type="file" accept="image/*" id="ePhIn" hidden></label>`;
+  el.dataset.url = url;
+  $('#ePhIn').onchange = async e => { const b = await pickPhoto(e.target); if (!b) return; try { await photoPut(t.id, b); t.photo = 1; save(); render(); editPhotoInit(t); toast('Đã lưu ảnh'); } catch (er) { toast('Máy không cho lưu ảnh'); } };
+}
+function editPhotoAct(t, a){
+  if (a === 'ph:view') { const u = $('#ePh') && $('#ePh').dataset.url; if (u) viewPhoto(u); }
+  if (a === 'ph:del' && confirm('Xóa ảnh của khoản chi này?')) { photoDel(t.id); delete t.photo; save(); render(); editPhotoInit(t); }
+}
+
 /* ================= Điều hướng ================= */
 const VIEWS = ['home', 'tx', 'add', 'goal', 'plan', 'set'];
 let view = 'home', prevView = 'home';
@@ -3032,9 +3173,9 @@ document.addEventListener('click', e => {
   if (e.target.closest('#eyeBtn')) { S.settings.hide = !S.settings.hide; save(); render(); }
 });
 $('#keys').onclick = e => { const b = e.target.closest('[data-k]'); if (b) key(b.dataset.k); };
-$('#amtClear').onclick = e => { e.preventDefault(); F.expr = ''; renderAmount(); };
+$('#amtClear').onclick = e => { e.preventDefault(); F.expr = ''; F.split = null; renderAmount(); };
 $('#saveBtn').onclick = saveNow;
-$('#qamt').onclick = e => { const b = e.target.closest('[data-qa]'); if (!b) return; vibe(); const v = Number(b.dataset.qa); F.expr = String(S.settings.auto1000 && v < 1e6 ? v / 1000 : v); renderAmount(); };
+$('#qamt').onclick = e => { const b = e.target.closest('[data-qa]'); if (!b) return; vibe(); const v = Number(b.dataset.qa); F.split = null; F.expr = String(S.settings.auto1000 && v < 1e6 ? v / 1000 : v); renderAmount(); };
 $('#levels').onclick = e => { const b = e.target.closest('[data-lv]'); if (!b) return; vibe(); F.level = F.level === b.dataset.lv ? null : b.dataset.lv; renderAmount(); };
 // Bàn phím tiếng Việt trên iPhone (Telex, VNI) ghép dấu theo kiểu "đang soạn", có lúc không phát sự kiện input:
 // nghe thêm compositionend, change, và kiểm tra định kỳ khi ô đang được gõ.
@@ -3153,7 +3294,10 @@ $('#setCats').addEventListener('click', e => {
   if (confirm(`Xóa danh mục "${short(c.name)}"?`)) { S.settings.categories.splice(Number(i), 1); save(); renderSet(); }
 });
 $('#addCat').onsubmit = e => { e.preventDefault(); const n = e.target.n.value.trim(); if (!n || catOf(n)) return; S.settings.categories.push({name:n, emoji:'🏷️', color:'#138D83', icon:CAT_ICON[short(n)] || 'khac'}); e.target.reset(); save(); renderSet(); };
-function backup(){ S.lastBackup = Date.now(); save(); saveFile(new Blob([JSON.stringify(S)], {type:'application/json'}), `nha-minh-sao-luu-${today()}.json`); render(); }
+// Sao lưu kèm ảnh khoản chi (ảnh nằm riêng trong IndexedDB nên phải gom vào file)
+async function backup(){ S.lastBackup = Date.now(); save(); const photos = {};
+  try { for (const [k, b] of await photoAll()) if (S.tx.some(t => t.id === k)) photos[k] = await toDataUrl(b); } catch (e) {}
+  saveFile(new Blob([JSON.stringify(Object.keys(photos).length ? {...S, photos} : S)], {type:'application/json'}), `nha-minh-sao-luu-${today()}.json`); render(); }
 $('#bkBtn').onclick = backup;
 // Thêm dữ liệu từ file/link bổ sung: chỉ thêm mục chưa có (theo id), không xóa gì
 function mergeData(d){
@@ -3218,7 +3362,10 @@ $('#rsFile').onchange = async e => {
   try {
     const d = JSON.parse(await f.text());
     if (d.merge) { mergeData(d); e.target.value = ''; return; }
-    if (!Array.isArray(d.tx)) throw 0; if (!confirm(`Khôi phục ${d.tx.length} khoản chi? Dữ liệu hiện tại sẽ bị thay thế.`)) return; S = migrate(d); save(); render(); toast('Đã khôi phục');
+    if (!Array.isArray(d.tx)) throw 0; const ph = d.photos || {}; delete d.photos; const np = Object.keys(ph).length;
+    if (!confirm(`Khôi phục ${d.tx.length} khoản chi${np ? ` và ${np} ảnh` : ''}? Dữ liệu hiện tại sẽ bị thay thế.`)) return; S = migrate(d); save();
+    for (const [k, u] of Object.entries(ph)) { try { await photoPut(k, await (await fetch(u)).blob()); } catch (e) {} }
+    render(); toast('Đã khôi phục');
   }
   catch (er) { toast('File sao lưu không đúng định dạng'); }
   e.target.value = '';
@@ -3787,6 +3934,13 @@ const ASK = [
       (S.cards || []).forEach(c => { const x = cardState(c); if (x.stmt) r.push(`thẻ ${esc(c.name)} ${shortMoney(x.stmt)} hạn ${dM(x.due)}`); });
       return r.length ? `Sắp tới cần trả: ${r.slice(0, 4).join('; ')}.` : 'Hiện chưa có khoản vay hay sao kê thẻ nào cần trả.'; },
     acts:[{t:'Mở Vay nợ', f:() => go('loan')}], rel:['loanpay', 'cardpay']},
+  {id:'group', q:'Đi ăn nhóm, mình trả trước rồi chia sau thì ghi sao?', k:['chia nhom', 'an nhom', 'di an nhom', 'chia tien', 'chia hoa don', 'tra truoc', 'tra ho', 'chia sau', 'chia deu', 'gop tien', 'ban be tra lai', 'tra gium', 'bao an'],
+    a:'Trên màn ghi chi, nhập <b>tổng hóa đơn</b> rồi bấm nút <b>👥</b> cạnh ô số tiền. Thêm tên những người cùng chia, app chia đều (sửa được từng người). Bấm Xong rồi Lưu: app chỉ ghi <b>phần của bạn</b> là khoản chi, phần của mỗi người được ghi vào <b>Tài sản → Vay nợ → Người khác nợ mình</b>. Khi họ chuyển tiền, bấm <b>Ghi nhận trả</b>.',
+    acts:[{t:'Mở màn ghi chi', f:() => { goAdd('out'); hl('#groupBtn'); }}], rel:['lendpay', 'photo']},
+  {id:'photo', q:'Lưu ảnh hóa đơn cho khoản chi thế nào?', k:['anh', 'chup anh', 'hinh', 'hoa don', 'bill', 'luu anh', 'them anh', 'chung tu', 'bien lai', 'chup bill'],
+    no:['hoa don dien', 'chia hoa don'],
+    a:'Trên màn ghi chi, bấm nút <b>📷</b> cạnh ô số tiền để chụp hoặc chọn ảnh, rồi Lưu như bình thường. Khoản đã ghi thì vào <b>Giao dịch → Danh sách</b>, bấm vào khoản đó để thêm, xem, đổi hoặc xóa ảnh. Ảnh được thu nhỏ để tiết kiệm bộ nhớ và có trong file sao lưu.',
+    acts:[{t:'Mở màn ghi chi', f:() => { goAdd('out'); hl('#photoBtn'); }}], rel:['group', 'backup']},
   {id:'notif', q:'Bật thông báo, đổi giờ nhắc ở đâu?', k:['thong bao', 'nhac nho', 'gio nhac', 'bat thong bao', 'tat thong bao', 'notification', 'man hinh khoa', 'nhac toi', 'lich nhac', 'mimi nhac'],
     no:['muc canh bao', 'canh bao chi'],
     a:'Vào <b>Cài đặt → Thông báo Mimi</b>: bấm <b>Bật thông báo</b>, chọn nhóm muốn nhận (nhắc ghi chép, cảnh báo chi tiêu, đến hạn, lương, tổng kết, sao lưu), đổi <b>giờ nhắc ghi chép</b> và <b>giờ yên lặng</b>. Bấm <b>Lịch 7 ngày tới</b> để xem trước Mimi sẽ nhắc gì. Đã ghi chép thì Mimi không nhắc, mỗi ngày tối đa 2 thông báo.',
@@ -4162,7 +4316,7 @@ $('#notifCard') && ($('#notifCard').onchange = e => {
 // Bấm thông báo trên màn hình khóa: service worker gửi tin nhắn hoặc mở app với #mimi=<việc>
 if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.mimiGo) mimiGo(e.data.mimiGo); });
 
-window.__app = {mimiPlan, mimiTick, ask:askMatch, classify, exportExcel, importExcel, loanState, simulate, planPay, goldCalc, cardState, lendState, spendable, get S(){ return S; }};
+window.__app = {photoAll, photoGet, mimiPlan, mimiTick, ask:askMatch, classify, exportExcel, importExcel, loanState, simulate, planPay, goldCalc, cardState, lendState, spendable, get S(){ return S; }};
 const h = location.hash.slice(1);
 const ROUTES = VIEWS.concat(['nw', 'save', 'asset', 'loan', 'gold', 'budget', 'accum', 'year', 'stat']);
 const importing = importFromHash();
