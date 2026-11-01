@@ -777,6 +777,29 @@ html.asklock,html.asklock body{overflow:hidden;overscroll-behavior:none}.sheet.a
 .asksend{width:46px;height:46px;border:0;border-radius:50%;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--primary-deep),var(--primary));box-shadow:0 4px 12px color-mix(in srgb,var(--primary-deep) 30%,transparent)}
 .asksend svg{width:21px;height:21px}
 @media (prefers-reduced-motion:reduce){.mimi *,#askFab .halo,.asklog .in,.asktyping .bub i{animation:none!important}}
+.fl-seg{margin:10px 0 10px}
+.fl-read{text-wrap:balance;min-height:42px;font-size:13.5px;font-weight:600;color:var(--muted);line-height:1.45;margin-bottom:8px}
+.fl-read b{color:var(--ink);font-weight:800}
+.fl-read .fl-k{display:inline-flex;align-items:center;gap:4px;margin-right:10px;font-size:12.5px}
+.fl-read .fl-top{font-size:12.5px;margin-top:2px}
+.fl-ch{font-size:12.5px;font-weight:800}.fl-ch.up{color:var(--out)}.fl-ch.dn{color:var(--in)}
+.fl-plot{position:relative;height:150px;margin-top:16px;display:grid;grid-template-columns:repeat(var(--n),1fr);align-items:end;border-bottom:1px solid var(--line)}
+.fl-col{position:relative;height:100%;border:0;background:transparent;padding:0 1px;display:flex;align-items:flex-end;justify-content:center;min-width:0;-webkit-tap-highlight-color:transparent}
+.fl-bar{width:100%;max-width:26px;min-height:0;display:flex;flex-direction:column-reverse;gap:1.5px;border-radius:3px 3px 0 0;overflow:hidden;transition:opacity .2s}
+.fl-bar.clip{-webkit-mask:linear-gradient(to bottom,transparent 6px,#000 6px,#000 9px,transparent 9px,transparent 11px,#000 11px);mask:linear-gradient(to bottom,transparent 6px,#000 6px,#000 9px,transparent 9px,transparent 11px,#000 11px)}
+.fl-clip{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-style:normal;font-size:10.5px;font-weight:800;color:var(--ink);white-space:nowrap;z-index:2}
+.fl-bar i{display:block;min-height:1.5px}
+.fl-col.fut .fl-bar{opacity:.3}
+.fl-plot.has-sel .fl-col:not(.sel) .fl-bar{opacity:.32}
+.fl-col.sel{background:color-mix(in srgb,var(--mint-soft) 70%,transparent);border-radius:6px 6px 0 0}
+.fl-avg{position:absolute;left:0;right:0;border-top:2px dashed color-mix(in srgb,var(--ink) 45%,transparent);pointer-events:none;z-index:1}
+.fl-avg span{position:absolute;right:0;bottom:3px;font-size:11px;font-weight:800;color:var(--muted);background:color-mix(in srgb,var(--card) 85%,transparent);padding:0 4px;border-radius:4px}
+.fl-x{display:grid;grid-template-columns:repeat(var(--n),1fr);margin-top:5px}
+.fl-x span{font-size:11px;font-weight:800;color:var(--muted);text-align:center;white-space:nowrap;overflow:visible}
+.fl-x span.now{color:var(--primary-ink)}
+.fl-leg{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:12px;font-weight:700;color:var(--muted)}
+.fl-leg span{display:inline-flex;align-items:center;gap:5px}
+.fl-dash::before{content:"";width:16px;border-top:2px dashed color-mix(in srgb,var(--ink) 45%,transparent)}
 </style>
 <script>
 /* Ngũ hành – design tokens. Màu Primary/Light/Soft cố định theo bảng; các token phụ được tính để bảo đảm tương phản. */
@@ -854,6 +877,7 @@ html.asklock,html.asklock body{overflow:hidden;overscroll-behavior:none}.sheet.a
     </div>
     <div id="txOv">
       <div class="card" id="sumCard"></div>
+      <div class="card" id="flowCard"></div>
       <div class="card"><h3>Theo danh mục</h3><div id="catBars"></div></div>
     </div>
     <div id="txLs" class="hidden">
@@ -1660,6 +1684,7 @@ function renderTx(){
     <div class="stack"><i style="width:${pc('G')}%;background:var(--g)"></i><i style="width:${pc('H')}%;background:var(--h)"></i><i style="width:${pc('I')}%;background:var(--i)"></i></div>
     <div class="legend">${['G','H','I'].map(k => `<div><span class="dot ${k}"></span>${LV[k].name}<b class="num">${shortMoney(s[k])} · ${pc(k)}%</b></div>`).join('')}</div>
     ${ins ? `<div class="insight pretty">${esc(ins)}</div>` : ''}`;
+  renderFlow();
   const byCat = {}; list.forEach(t => byCat[t.type] = (byCat[t.type] || 0) + t.amount);
   const cats = Object.entries(byCat).sort((a, b) => b[1] - a[1]); const max = cats[0]?.[1] || 1;
   $('#catBars').innerHTML = cats.length ? cats.map(([c, v]) => `<div class="cbar">${cic(c)}<span class="nm">${esc(short(c))}</span><span class="v num">${shortMoney(v)}</span><div class="track"><i style="width:${v / max * 100}%;background:${colorOf(c)}"></i></div></div>`).join('') : `<div class="empty">Chưa có dữ liệu tháng này</div>`;
@@ -2873,6 +2898,73 @@ function toast(html, act, fn, ms){
   toastTimer = setTimeout(() => el.remove(), ms || (act ? 5000 : 2200));
 }
 
+/* ================= Biến động chi tiêu: theo ngày / tháng / thứ ================= */
+// Cột chồng theo 3 mức (màu nghiệp vụ cố định), đường nét đứt là mức trung bình; bấm cột để xem chi tiết ở dòng chú thích.
+const WDN = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+let flowSeg = 'day', flowSel = null;
+const lvLine = s => ['G', 'H', 'I'].filter(k => s[k]).map(k => `<span class="fl-k"><i class="dot ${k}"></i>${LV[k].name} ${shortMoney(s[k])}</span>`).join('');
+function flowData(){
+  const now = today(), byDay = {};
+  S.tx.forEach(t => { (byDay[t.date] = byDay[t.date] || []).push(t); });
+  const sumOf = list => sums(list || []);
+  if (flowSeg === 'day') {
+    const [y, mo] = curM.split('-').map(Number), n = daysIn(y, mo);
+    const rows = Array.from({length:n}, (_, i) => { const d = `${curM}-${pad(i + 1)}`; return {key:d, lab:String(i + 1), s:sumOf(byDay[d]), fut:d > now, list:byDay[d] || []}; });
+    const past = rows.filter(r => !r.fut), avg = past.length ? past.reduce((a, r) => a + r.s.all, 0) / past.length : 0;
+    const mx = past.reduce((a, r) => r.s.all > a.s.all ? r : a, {s:{all:0}}), zero = past.filter(r => !r.s.all).length;
+    return {rows, avg, avgLab:`TB ${shortMoney(avg)}/ngày`, tick:(r, i) => i === 0 || (i + 1) % 5 === 0 || r.key === now, now,
+      head:mx.s.all ? `Trung bình <b>${shortMoney(avg)}/ngày</b> · nhiều nhất <b>${dM(mx.key)}</b> (${shortMoney(mx.s.all)})${zero ? ` · ${zero} ngày không chi` : ''}` : 'Tháng này chưa có khoản chi nào',
+      tip:r => { const dt = new Date(r.key + 'T00:00:00'); const top = r.list.slice().sort((a, b) => b.amount - a.amount).slice(0, 2).map(t => `${esc(t.detail)} ${shortMoney(t.amount)}`).join(', ');
+        return `<b>${WDN[dt.getDay()]}, ${dM(r.key)}: ${r.fut ? 'chưa tới' : r.s.all ? shortMoney(r.s.all) : 'không chi'}</b>${r.s.all ? `<div>${lvLine(r.s)}</div>${top ? `<div class="fl-top">Lớn nhất: ${top}</div>` : ''}` : ''}`; }};
+  }
+  if (flowSeg === 'month') {
+    const ms = Array.from({length:12}, (_, i) => shiftM(curM, i - 11));
+    const rows = ms.map(m => ({key:m, lab:`T${Number(m.slice(5))}`, s:sumOf(S.tx.filter(t => t.date.startsWith(m))), fut:m > now.slice(0, 7)}));
+    const has = rows.filter(r => r.s.all), avg = has.length ? has.reduce((a, r) => a + r.s.all, 0) / has.length : 0, cur = rows[11];
+    const d = avg && cur.s.all ? Math.round((cur.s.all / avg - 1) * 100) : null;
+    return {rows, avg, avgLab:`TB ${shortMoney(avg)}/tháng`, tick:() => true, now:now.slice(0, 7),
+      head:has.length ? `Trung bình <b>${shortMoney(avg)}/tháng</b> (${has.length} tháng có chi)${d !== null ? ` · T${Number(curM.slice(5))}/${curM.slice(0, 4)} <b>${d >= 0 ? 'cao hơn' : 'thấp hơn'} ${Math.abs(d)}%</b>` : ''}` : 'Chưa có khoản chi nào trong 12 tháng này',
+      tip:(r, i) => { const pv = rows[i - 1]; const ch = pv && pv.s.all && r.s.all ? Math.round((r.s.all / pv.s.all - 1) * 100) : null;
+        return `<b>${mLabel(r.key)}: ${r.s.all ? shortMoney(r.s.all) : 'không có chi'}</b>${ch !== null ? ` <span class="fl-ch ${ch > 0 ? 'up' : 'dn'}">${ch > 0 ? '▲' : '▼'} ${Math.abs(ch)}% so với tháng trước</span>` : ''}${r.s.all ? `<div>${lvLine(r.s)}</div>` : ''}`; }};
+  }
+  // Theo thứ: trung bình mỗi ngày theo thứ trong 3 tháng gần nhất tính tới tháng đang xem (bỏ các ngày chưa tới)
+  const from = shiftM(curM, -2) + '-01', [y, mo] = curM.split('-').map(Number), end = `${curM}-${pad(daysIn(y, mo))}`, to = end < now ? end : now;
+  const acc = Array.from({length:7}, () => ({n:0, s:{G:0, H:0, I:0, all:0}}));
+  for (let d = new Date(from + 'T00:00:00'); ymd(d) <= to; d.setDate(d.getDate() + 1)) { const a = acc[d.getDay()], s = sumOf(byDay[ymd(d)]); a.n++; ['G', 'H', 'I', 'all'].forEach(k => a.s[k] += s[k]); }
+  const rows = [1, 2, 3, 4, 5, 6, 0].map(w => { const a = acc[w], s = {}; ['G', 'H', 'I', 'all'].forEach(k => s[k] = a.n ? a.s[k] / a.n : 0); return {key:'w' + w, lab:w ? 'T' + (w + 1) : 'CN', name:WDN[w], s, n:a.n, tot:a.s.all}; });
+  const act = rows.filter(r => r.s.all), avg = rows.reduce((a, r) => a + r.tot, 0) / Math.max(1, rows.reduce((a, r) => a + r.n, 0));
+  const hi = act.reduce((a, r) => r.s.all > a.s.all ? r : a, {s:{all:0}}), lo = act.reduce((a, r) => r.s.all < a.s.all ? r : a, {s:{all:Infinity}});
+  return {rows, avg, avgLab:`TB ${shortMoney(avg)}/ngày`, tick:() => true, now:'w' + new Date().getDay(),
+    head:act.length ? `Chi nhiều nhất vào <b>${hi.name}</b>, trung bình <b>${shortMoney(hi.s.all)}/ngày</b>${act.length > 1 && lo.s.all ? `, gấp ${(hi.s.all / lo.s.all).toFixed(1).replace('.', ',')} lần ${lo.name.toLowerCase()}` : ''}` : 'Chưa có khoản chi nào trong 3 tháng này',
+    note:`Trung bình mỗi ngày theo thứ, tính từ ${dM(from)}/${from.slice(0, 4)} đến ${dM(to)}/${to.slice(0, 4)}`,
+    tip:r => `<b>${r.name}: trung bình ${shortMoney(r.s.all)}/ngày</b> <span class="muted">(${r.n} ngày, tổng ${shortMoney(r.tot)})</span>${r.s.all ? `<div>${lvLine(r.s)}</div>` : ''}`};
+}
+function renderFlow(){
+  const el = $('#flowCard'); if (!el) return;
+  const D = flowData(), rows = D.rows;
+  // Một cột vượt hẳn (vd: tiền nhà) thì cắt bớt và ghi số ở đầu cột, để các ngày thường vẫn thấy rõ biến động
+  const vs = rows.map(r => r.s.all).filter(v => v > 0).sort((a, b) => b - a);
+  const cap = vs.length >= 4 && vs[0] > 2.5 * vs[1] ? vs[1] * 1.3 : 0;
+  const top = Math.max(1, cap || vs[0] || 0, D.avg) * 1.08;
+  if (flowSel !== null && !rows[flowSel]) flowSel = null;
+  const sel = flowSel !== null ? rows[flowSel] : null;
+  el.innerHTML = `<div class="row between"><h3>Biến động chi tiêu</h3></div>
+    <div class="segment fl-seg" style="grid-template-columns:repeat(3,1fr)">${[['day', 'Theo ngày'], ['month', 'Theo tháng'], ['wd', 'Theo thứ']].map(([k, n]) => `<button data-fseg="${k}" class="${flowSeg === k ? 'on' : ''}">${n}</button>`).join('')}</div>
+    <div class="fl-read pretty">${sel ? D.tip(sel, flowSel) : D.head}</div>
+    <div class="fl-plot${sel ? ' has-sel' : ''}" style="--n:${rows.length}">
+      ${D.avg ? `<div class="fl-avg" style="bottom:${D.avg / top * 100}%"></div>` : ''}
+      ${rows.map((r, i) => `<button class="fl-col${i === flowSel ? ' sel' : ''}${r.fut ? ' fut' : ''}${r.key === D.now ? ' now' : ''}" data-fi="${i}" aria-label="${esc(r.name || r.lab)}: ${shortMoney(r.s.all)}">
+        ${cap && r.s.all > cap ? `<em class="fl-clip">${shortMoney(r.s.all)}</em>` : ''}<span class="fl-bar${cap && r.s.all > cap ? ' clip' : ''}" style="height:${Math.min(100, r.s.all / top * 100)}%">${['G', 'H', 'I'].map(k => r.s[k] ? `<i style="flex:${r.s[k]};background:var(--${k.toLowerCase()})"></i>` : '').join('')}</span></button>`).join('')}
+    </div>
+    <div class="fl-x" style="--n:${rows.length}">${rows.map((r, i) => `<span class="${r.key === D.now ? 'now' : ''}">${D.tick(r, i) ? r.lab : ''}</span>`).join('')}</div>
+    <div class="fl-leg">${['G', 'H', 'I'].map(k => `<span><i class="dot ${k}"></i>${LV[k].name}</span>`).join('')}<span class="fl-dash">${D.avg ? D.avgLab.replace('TB', 'Trung bình') : 'Trung bình'}</span></div>
+    ${D.note ? `<p class="note" style="margin:8px 0 0">${D.note}</p>` : ''}`;
+}
+$('#flowCard').onclick = e => {
+  const s = e.target.closest('[data-fseg]'); if (s) { flowSeg = s.dataset.fseg; flowSel = null; renderFlow(); return; }
+  const c = e.target.closest('[data-fi]'); if (c) { const i = Number(c.dataset.fi); flowSel = flowSel === i ? null : i; renderFlow(); }
+};
+
 /* ================= Điều hướng ================= */
 const VIEWS = ['home', 'tx', 'add', 'goal', 'plan', 'set'];
 let view = 'home', prevView = 'home';
@@ -3682,6 +3774,9 @@ const ASK = [
       (S.cards || []).forEach(c => { const x = cardState(c); if (x.stmt) r.push(`thẻ ${esc(c.name)} ${shortMoney(x.stmt)} hạn ${dM(x.due)}`); });
       return r.length ? `Sắp tới cần trả: ${r.slice(0, 4).join('; ')}.` : 'Hiện chưa có khoản vay hay sao kê thẻ nào cần trả.'; },
     acts:[{t:'Mở Vay nợ', f:() => go('loan')}], rel:['loanpay', 'cardpay']},
+  {id:'flow', q:'Xem biểu đồ chi tiêu theo ngày, tháng, thứ?', k:['bieu do', 'bien dong', 'theo ngay', 'theo thu', 'thu may', 'ngay nao chi nhieu', 'thu nao chi nhieu', 'cuoi tuan', 'xu huong', 'chart'],
+    a:'Vào <b>Giao dịch → Tổng quan</b>, thẻ <b>Biến động chi tiêu</b> có 3 tab: <b>Theo ngày</b> (từng ngày trong tháng), <b>Theo tháng</b> (12 tháng gần nhất) và <b>Theo thứ</b> (trung bình mỗi thứ trong 3 tháng). Cột chia màu theo Cần thiết, Nên có, Lãng phí; đường nét đứt là mức trung bình. Bấm vào một cột để xem chi tiết.',
+    acts:[{t:'Mở biểu đồ', f:() => { txSeg = 'ov'; curM = curYm(); go('tx'); hl('#flowCard'); }}], rel:['stat', 'month']},
   {id:'month', q:'Xem chi tiêu tháng cũ, năm trước ở đâu?', k:['thang cu', 'thang truoc', 'nam truoc', 'nam ngoai', 'nam 2024', 'nam 2025', 'chon thang', 'doi thang', 'xem thang', 'chi co thang', 'mat thang', 'khong thay thang', 'du lieu cu'],
     a:'Vào <b>Giao dịch</b>, bấm vào <b>chữ tháng</b> ở giữa hai mũi tên (vd: “Tháng 10, 2024 ▾”). App hiện các tháng có dữ liệu theo từng năm, kèm số khoản và tổng chi. Bấm vào tháng muốn xem. Muốn quay lại, bấm <b>Về tháng này</b>.',
     acts:[{t:'Mở chọn tháng', f:() => { txSeg = 'ls'; go('tx'); openMonthPick(); }}], rel:['stat', 'import']},
