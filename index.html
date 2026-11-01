@@ -1419,19 +1419,20 @@ const KW = [
   ['an sang|an trua|an toi|com|pho|bun|mien|banh mi|chao|xoi|di cho|rau|thit|ca|trung|sua|hoa qua|trai cay|gao|sieu thi|winmart|bach hoa|thuc pham|nau an|do an', 'Ăn uống', 'G'],
   ['grab|be car|xanh sm|taxi|xe om', 'Đi lại', 'H'],
   ['xang|gui xe|ve xe|sua xe|thay dau|rua xe|cau duong|bao duong xe|ve tau', 'Đi lại', 'G'],
-  ['tien dien|dien|nuoc|internet|wifi|fpt|viettel|vnpt|nap dien thoai|nap the|cuoc dien thoai|truyen hinh|gas', 'Dịch vụ sinh hoạt', 'G'],
+  ['tien dien|dien nuoc|hoa don dien|nuoc|internet|wifi|fpt|viettel|vnpt|nap dien thoai|nap the|cuoc dien thoai|truyen hinh|gas', 'Dịch vụ sinh hoạt', 'G'],
   ['tien nha|thue nha|phi quan ly|chung cu', 'Nhà cửa', 'G'],
   ['noi chao|bat dia|do gia dung|ga goi|chan ga|rem cua|bong den|quat|may giat|tu lanh|sofa|ban ghe|ban an|decor|cay canh', 'Nhà cửa', 'H'],
   ['thuoc|kham|benh vien|nha khoa|rang|xet nghiem|ivf|sieu am|vitamin|collagen|tiem|vac xin', 'Sức khỏe', 'G'],
   ['sach|khoa hoc|hoc phi|tieng anh|ielts|yoga|gym|boi|lop hoc|udemy|hoc', 'Phát triển bản thân', 'G'],
   ['quan|ao|vay|giay|dep|tui|mu|tat|dong ho|kinh', 'Trang phục', 'H'],
-  ['cuoi|mung|dam gio|ma chay|vieng|sinh nhat|qua|li xi|bieu|hieu hi|thoi noi|day thang', 'Hiếu hỉ', 'H'],
+  ['cuoi|mung|mt|mt con|mung tuoi|dam gio|ma chay|vieng|sinh nhat|qua|li xi|bieu|hieu hi|thoi noi|day thang', 'Hiếu hỉ', 'H'],
   ['my pham|son|kem duong|serum|spa|nail|lam toc|cat toc|goi dau|massage|phim|cgv|karaoke|du lich|khach san|homestay|ve may bay|resort|netflix|spotify|game', 'Hưởng thụ', 'H'],
   ['bim|ta|sua bot|do choi|hoc phi con|con', 'Con cái', 'G'],
   ['bao hiem|prudential|manulife|aia|bao viet|dai ichi', 'Bảo hiểm', 'G'],
   ['tra no|tra gop|tra vay|tra lai|tra the', 'Trả nợ vay', 'G'],
   ['shopee|lazada|tiki|tiktok shop', 'Khác', 'H'],
 ].map(([k, c, l]) => [k.split('|'), c, l]);
+const KW_ACC = {giay:'giày', vay:'váy', ao:'áo', quan:'quần', mu:'mũ', tat:'tất', dep:'dép', tui:'túi', kinh:'kính', ta:'tã', bim:'bỉm'};
 function classify(text){
   const q = unacc(text); if (q.length < 2) return null;
   const qt = new Set(q.split(' ').filter(w => w.length > 1));
@@ -1452,7 +1453,10 @@ function classify(text){
   // 2) Từ khóa
   const pad = ` ${q} `;
   let hit = null; // ưu tiên từ khóa dài nhất để tránh nhầm (vd: "bạn" ≠ "bàn")
-  for (const [ws, c, l] of KW) for (const w of ws) if (pad.includes(` ${w} `) && (!hit || w.length > hit.w.length)) hit = {w, c, l};
+  // Từ bỏ dấu dễ trùng (giấy/giày, vay/váy…): người dùng gõ có dấu thì phải đúng chữ có dấu mới tính
+  const low = ` ${String(text).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ')} `, accented = /[^\x00-\x7F]/.test(String(text).replace(/[đĐ]/g, ''));
+  const accOk = w => !accented || !KW_ACC[w] || low.includes(` ${KW_ACC[w]} `);
+  for (const [ws, c, l] of KW) for (const w of ws) if (pad.includes(` ${w} `) && accOk(w) && (!hit || w.length > hit.w.length)) hit = {w, c, l};
   if (hit) { const cat = catOf(hit.c); if (cat) return {type:cat.name, level:hit.l, src:'kw', kw:hit.w}; }
   return null;
 }
@@ -3421,9 +3425,13 @@ async function importExcel(file){
     S.settings.categories.push({name, emoji:'🏷️', color:'#138D83'}); return name;
   };
   const base = Date.UTC(year, 0, 1);
+  // Khoản sổ cũ để danh mục trống hoặc "Khác": thử tự phân loại theo nội dung chi; không chắc thì giữ nguyên "Khác"
+  let reclass = 0;
   const tx = rows.map((x, i) => {
     const date = `${year}-${pad(x.month)}-${pad(x.m === x.month ? x.dd : 1)}`;
-    const type = ensureCat(x.type);
+    let tn = x.type;
+    if ((!tn || norm(tn) === norm('Khác')) && x.detail) { const g = classify(x.detail); if (g && g.type && norm(g.type) !== norm('Khác')) { tn = g.type; reclass++; } }
+    const type = ensureCat(tn);
     const f = fundOfLabel(x.fund) || defaultFundFor(type);
     return {id:uid() + i, date, detail:x.detail || short(type), type, fund:fundLabel(f), level:x.level, amount:x.amount, expr:x.expr, created:base + i};
   });
@@ -3448,7 +3456,7 @@ async function importExcel(file){
     });
   }
   const had = S.tx.filter(t => t.date.startsWith(String(year))).length;
-  if (!confirm(`Tìm thấy ${tx.length} khoản chi năm ${year}${Object.keys(incomes).length ? `, thu nhập ${Object.keys(incomes).length} tháng` : ''}${goals ? `, ${goals.length} mục tiêu` : ''}.${had ? ` ${had} khoản đang có của năm ${year} sẽ được thay thế.` : ''} Nhập vào app?`)) return;
+  if (!confirm(`Tìm thấy ${tx.length} khoản chi năm ${year}${reclass ? ` (${reclass} khoản ghi “Khác” được tự xếp lại danh mục theo nội dung)` : ''}${Object.keys(incomes).length ? `, thu nhập ${Object.keys(incomes).length} tháng` : ''}${goals ? `, ${goals.length} mục tiêu` : ''}.${had ? ` ${had} khoản đang có của năm ${year} sẽ được thay thế.` : ''} Nhập vào app?`)) return;
   S.tx = S.tx.filter(t => !t.date.startsWith(String(year))).concat(tx);
   for (const [m, x] of Object.entries(incomes)) {
     S.income[m] = {actual:x.actual};
