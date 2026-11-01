@@ -821,7 +821,7 @@ nav.tabs .fab svg{width:28px;height:28px}
       <button data-gseg="save"><span class="ti" data-fi="piggy"></span>Tiết kiệm</button>
       <button data-gseg="gold"><span class="ti" data-fi="gold"></span>Vàng bạc</button>
       <button data-gseg="asset"><span class="ti" data-fi="house"></span>Tài sản</button>
-      <button data-gseg="loan"><span class="ti" data-fi="bank"></span>Khoản vay</button></div>
+      <button data-gseg="loan"><span class="ti" data-fi="bank"></span>Vay nợ</button></div>
     </div>
     <div id="nwPane"></div>
     <div id="savePane" class="hidden"><div id="saveSum"></div><div id="saveList"></div>
@@ -832,8 +832,10 @@ nav.tabs .fab svg{width:28px;height:28px}
       <div id="loanSum"></div>
       <div id="loanList"></div>
       <div id="cardList"></div>
+      <div id="lendList"></div>
       <button class="newgoal" id="loanNew"><span class="pl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span><span><b>Thêm khoản vay</b><small>Vay ngân hàng, trả góp, vay người thân</small></span></button>
       <button class="newgoal" id="cardNew" style="margin-top:10px"><span class="pl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span><span><b>Thêm thẻ tín dụng</b><small>Theo dõi sao kê và hạn thanh toán</small></span></button>
+      <button class="newgoal" id="lendNew" style="margin-top:10px"><span class="pl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span><span><b>Thêm khoản cho vay</b><small>Người khác mượn tiền của mình</small></span></button>
     </div>
     <div id="goldPane" class="hidden">
       <div id="goldSum"></div>
@@ -1057,6 +1059,7 @@ function migrate(d){
   }
   delete out.wishes;
   out.loans = d.loans || []; out.gold = d.gold || []; out.goldPrice = d.goldPrice || {}; out.savings = d.savings || []; out.assets = d.assets || []; out.nwSnap = d.nwSnap || {};
+  out.lends = d.lends || [];
   out.cards = d.cards || []; out.cardPays = d.cardPays || []; out.lastCard = d.lastCard || null;
   out.inc = d.inc || []; out.budgets = d.budgets || {}; out.plans = d.plans || []; out.split = d.split || []; out.splitDone = d.splitDone || {};
   out.settings.alerts = {...base.settings.alerts, ...((d.settings || {}).alerts || {})};
@@ -1672,7 +1675,7 @@ function renderGoal(){
   $$('#goalSeg button').forEach(b => b.classList.toggle('on', b.dataset.gseg === goalSeg));
   if (!['nw', 'save', 'gold', 'asset', 'loan'].includes(goalSeg)) goalSeg = 'nw';
   ['nw', 'save', 'gold', 'asset', 'loan'].forEach(k => $(`#${k}Pane`).classList.toggle('hidden', goalSeg !== k));
-  $('#goalTitle').textContent = {nw:'Tổng tài sản', save:'Sổ tiết kiệm', gold:'Vàng & bạc', asset:'Tài sản khác', loan:'Khoản vay'}[goalSeg];
+  $('#goalTitle').textContent = {nw:'Tổng tài sản', save:'Sổ tiết kiệm', gold:'Vàng & bạc', asset:'Tài sản khác', loan:'Vay nợ'}[goalSeg];
   const on = $(`#goalSeg [data-gseg="${goalSeg}"]`); if (on) on.scrollIntoView({block:'nearest', inline:'center'});
   if (goalSeg === 'nw') { renderNW(); return; }
   if (goalSeg === 'save') { renderSavings(); return; }
@@ -1852,6 +1855,7 @@ function computeAlerts(){
   if (A.budget) budgetRows(today().slice(0, 7)).filter(r => r.b && stateOf(r.s, r.b)).sort((a, b) => b.s / b.b - a.s / a.b).forEach(r => out.push({lv:stateOf(r.s, r.b), ic:catIc(r.c), go:'budget', t:`${short(r.c.name)}: ${shortMoney(r.s)}/${shortMoney(r.b)}${r.s > r.b ? `, vượt ${shortMoney(r.s - r.b)}` : ` (${Math.round(r.s / r.b * 100)}%)`}`}));
   S.loans.map(L => [L, loanState(L)]).filter(([, x]) => !x.done && x.next && daysTo(x.next.due) <= (A.loanDays ?? 3)).forEach(([L, x]) => { const d = daysTo(x.next.due); out.push({lv:d < 0 ? 'over' : 'warn', ic:ico('hoa-don'), act:`lpay:${L.id}`, t:`${L.name}: ${d < 0 ? `quá hạn ${-d} ngày` : d === 0 ? 'đến hạn hôm nay' : `đến hạn sau ${d} ngày`} · ${shortMoney(x.next.total)}`}); });
   (S.cards || []).map(c => [c, cardState(c)]).filter(([, x]) => x.stmt > 0 && x.dueIn <= Math.max(3, A.loanDays ?? 3)).forEach(([c, x]) => out.push({lv:x.dueIn < 0 ? 'over' : 'warn', ic:'💳', go:'loan', t:`${c.name}: sao kê ${shortMoney(x.stmt)} ${x.dueIn < 0 ? `quá hạn ${-x.dueIn} ngày` : x.dueIn === 0 ? 'đến hạn hôm nay' : `đến hạn sau ${x.dueIn} ngày`}`}));
+  (S.lends || []).map(x => [x, lendState(x)]).filter(([x, t]) => !t.done && x.due && t.dueIn <= (A.loanDays ?? 3)).forEach(([x, t]) => out.push({lv:t.dueIn < 0 ? 'over' : 'warn', ic:'🤝', go:'loan', t:`${x.name} ${t.dueIn < 0 ? `quá hẹn trả ${-t.dueIn} ngày` : t.dueIn === 0 ? 'hẹn trả hôm nay' : `hẹn trả sau ${t.dueIn} ngày`} · ${shortMoney(t.left)}`}));
   S.savings.filter(v => !v.closed).map(v => [v, saveState(v)]).filter(([, x]) => x.maturity && (x.matured || x.daysLeft <= (A.saveDays ?? 7))).forEach(([v, x]) => out.push({lv:'warn', ic:ico('tiet-kiem'), go:'save', t:`${saveName(v)} ${x.matured ? 'đã đến hạn, chờ tất toán' : `đến hạn sau ${x.daysLeft} ngày`} · nhận ${shortMoney(x.atMaturity)}`}));
   return out.sort((a, b) => (a.lv === 'over' ? 0 : 1) - (b.lv === 'over' ? 0 : 1));
 }
@@ -2124,8 +2128,66 @@ function openCardPay(id){
     S.cardPays = (S.cardPays || []).concat({id:uid(), cardId:id, date:$('#pD').value || today(), amount:v}); save(); closeSheet(); render();
     const y = cardState(c); toast(y.stmt ? `Đã ghi. Sao kê còn thiếu ${shortMoney(y.stmt)}` : 'Đã trả đủ sao kê ✓'); });
 }
+/* ================= NGƯỜI KHÁC NỢ MÌNH =================
+   Cho vay không phải khoản chi, nhận lại tiền không phải khoản thu: chỉ là khoản phải thu.
+   Số còn nợ được cộng vào tài sản ròng. */
+const lendById = id => (S.lends || []).find(x => x.id === id);
+function lendState(x){
+  const paid = (x.before || 0) + (x.pays || []).reduce((a, p) => a + p.amount, 0);
+  const left = Math.max(0, x.amount - paid);
+  return {paid, left, done:left < 1, dueIn:x.due ? daysTo(x.due) : null, pct:x.amount ? Math.min(100, Math.round(paid / x.amount * 100)) : 0};
+}
+const lendLeft = () => (S.lends || []).reduce((a, x) => a + lendState(x).left, 0);
+function renderLends(){
+  const el = $('#lendList'); if (!el) return; const ls = S.lends || [];
+  const act = ls.filter(x => !lendState(x).done).sort((a, b) => (a.due || '9').localeCompare(b.due || '9')), done = ls.filter(x => lendState(x).done);
+  const card = x => { const t = lendState(x); const late = !t.done && t.dueIn !== null && t.dueIn < 0;
+    return `<div class="loan"><div class="lh">${fi('people', 'pic')}<span><b>${esc(x.name)}</b><small>Cho vay ${dmy(x.date)}${x.due ? ` · hẹn trả ${dmy(x.due)}` : ''}</small></span><button class="chev" data-lend="edit|${x.id}" aria-label="Sửa">${chevSvg}</button></div>
+      <div class="lnums"><div>Cho vay<b class="num">${hid(shortMoney(x.amount))}</b></div><div>Đã trả<b class="num">${hid(shortMoney(t.paid))}</b></div><div>Còn nợ<b class="num" style="color:${t.done ? 'var(--in)' : 'var(--ink)'}">${hid(shortMoney(t.left))}</b></div></div>
+      <div class="prog" style="margin:0 0 10px"><i style="width:${t.pct}%;background:var(--in)"></i></div>
+      ${t.done ? `<div class="due"><span>Đã thu hết</span><b>✓</b></div>` : x.due ? `<div class="due ${late ? 'late' : t.dueIn <= 3 ? 'soon' : ''}"><span>Hẹn trả ${dmy(x.due)}</span><b>${late ? `quá hạn ${-t.dueIn} ngày` : t.dueIn === 0 ? 'hôm nay' : `còn ${t.dueIn} ngày`}</b></div>` : ''}
+      ${x.note ? `<p class="note pretty" style="margin:0 0 10px">${esc(x.note)}</p>` : ''}
+      ${t.done ? '' : `<button class="btn pri" style="width:100%" data-lend="pay|${x.id}">Ghi nhận trả</button>`}</div>`; };
+  const tot = lendLeft();
+  el.innerHTML = ls.length ? `<div class="subh">NGƯỜI KHÁC NỢ MÌNH${tot ? ` · CÒN ${shortMoney(tot).toUpperCase()}` : ''}</div>` + act.map(card).join('') + (done.length ? `<div class="subh">ĐÃ THU HẾT</div>` + done.map(card).join('') : '') : '';
+}
+function openLend(id){
+  const x0 = lendById(id); const x = x0 || {name:'', amount:0, date:today(), due:'', note:''};
+  sheet(`<h2>${x0 ? 'Sửa khoản cho vay' : 'Thêm khoản cho vay'}</h2>
+    <label class="field"><span>Người nợ</span><input class="inp" id="dN" value="${esc(x.name)}" placeholder="vd: Chị Lan, Bạn Minh"></label>
+    <div class="grid2"><label class="field"><span>Số tiền cho vay</span><input class="inp money" id="dA" inputmode="numeric" value="${x.amount ? fmt(x.amount) : ''}" placeholder="0"></label>
+    <label class="field"><span>Ngày cho vay</span><input class="inp" type="date" id="dD" value="${x.date}"></label></div>
+    <div class="grid2"><label class="field"><span>Hẹn trả (nếu có)</span><input class="inp" type="date" id="dH" value="${x.due || ''}"></label>
+    ${x0 ? '<span></span>' : '<label class="field"><span>Còn nợ hiện tại</span><input class="inp money" id="dC" inputmode="numeric" placeholder="Nếu đã trả bớt"></label>'}</div>
+    <label class="field"><span>Ghi chú</span><input class="inp" id="dG" value="${esc(x.note || '')}" placeholder="vd: Mượn để sửa nhà"></label>
+    ${x0 && (x0.pays || []).length ? `<div class="subh">CÁC LẦN TRẢ</div>${x0.pays.map((p, i) => `<div class="srow" style="grid-template-columns:1fr auto 28px;align-items:center"><span class="d">${dmy(p.date)}</span><span class="a">${fmt(p.amount)} đ</span><button class="x-btn" data-sa="rm:${i}" aria-label="Xóa lần trả">✕</button></div>`).join('')}` : ''}
+    <p class="note pretty">Cho vay không tính là khoản chi, nhận lại tiền không tính là khoản thu. Số còn nợ được cộng vào tài sản ròng.</p>
+    <div class="grid2">${x0 ? '<button class="btn danger" data-sa="del">Xóa</button>' : '<button class="btn" data-sa="close">Hủy</button>'}<button class="btn pri" data-sa="save">Lưu</button></div>`,
+  a => {
+    if (a === 'close') { closeSheet(); return; }
+    if (a.startsWith('rm:')) { x0.pays.splice(Number(a.slice(3)), 1); save(); closeSheet(); render(); openLend(id); return; }
+    if (a === 'del') { if (confirm(`Xóa khoản cho ${x0.name} vay?`)) { S.lends = S.lends.filter(y => y.id !== id); save(); closeSheet(); render(); } return; }
+    if (a !== 'save') return;
+    const v = {name:$('#dN').value.trim(), amount:parseMoney($('#dA').value), date:$('#dD').value || today(), due:$('#dH').value || '', note:$('#dG').value.trim()};
+    if (!v.name) { toast('Nhập tên người nợ'); return; } if (!v.amount) { toast('Nhập số tiền cho vay'); return; }
+    if (x0) Object.assign(x0, v);
+    else { const c = $('#dC') ? parseMoney($('#dC').value) : 0; S.lends = (S.lends || []).concat({...v, id:uid(), pays:[], before:c && c < v.amount ? v.amount - c : 0}); }
+    save(); closeSheet(); render(); toast(x0 ? 'Đã lưu' : `Đã ghi ${v.name} nợ ${shortMoney(v.amount)}`);
+  });
+}
+function openLendPay(id){
+  const x = lendById(id); const t = lendState(x);
+  sheet(`<h2>${esc(x.name)} trả tiền</h2>
+    <p class="note pretty">Còn nợ <b>${money(t.left)}</b>. Nhận lại tiền không tính là khoản thu.</p>
+    <div class="grid2"><label class="field"><span>Số tiền trả</span><input class="inp money" id="pA" inputmode="numeric" value="${fmt(t.left)}"></label>
+    <label class="field"><span>Ngày</span><input class="inp" type="date" id="pD" value="${today()}"></label></div>
+    <div class="grid2"><button class="btn" data-sa="close">Hủy</button><button class="btn pri" data-sa="save">Lưu</button></div>`,
+  a => { if (a === 'close') { closeSheet(); return; } if (a !== 'save') return; const v = Math.min(parseMoney($('#pA').value), t.left); if (!v) { toast('Nhập số tiền'); return; }
+    x.pays = (x.pays || []).concat({id:uid(), date:$('#pD').value || today(), amount:v}); save(); closeSheet(); render();
+    const y = lendState(x); toast(y.done ? `${x.name} đã trả hết ✓` : `Đã ghi. ${x.name} còn nợ ${shortMoney(y.left)}`); });
+}
 function renderLoans(){
-  renderCards();
+  renderCards(); renderLends();
   const act = S.loans.filter(L => !loanState(L).done), done = S.loans.filter(L => loanState(L).done);
   const st = act.map(L => [L, loanState(L)]);
   const totalB = st.reduce((s, [, x]) => s + x.B, 0), monthly = st.reduce((s, [, x]) => s + (x.next ? x.next.total : 0), 0);
@@ -2135,7 +2197,7 @@ function renderLoans(){
     ${last ? `<div class="wide">${st.filter(([L]) => L.method !== 'free').length > 1 ? `Sạch nợ toàn bộ sau <b>${last[1].left} kỳ</b> (tháng ${mY(last[1].end)}). Xong sớm nhất: ${esc(first[0].name)}, còn <b>${first[1].left} kỳ</b>.` : `Sạch nợ sau <b>${last[1].left} kỳ</b>, khoảng ${durTxt(last[1].left)} nữa (tháng ${mY(last[1].end)}).`}</div>` : ''}</div>` : '';
   $('#loanList').innerHTML = (act.length || done.length)
     ? act.map(loanCard).join('') + (done.length ? `<div class="subh">ĐÃ TẤT TOÁN</div>` + done.map(loanCard).join('') : '')
-    : `<div class="empty pretty">Chưa có khoản vay nào. Thêm khoản vay để app tự tính gốc, lãi từng kỳ và đếm ngược ngày trả xong.</div>`;
+    : (S.cards || []).length || (S.lends || []).length ? '' : `<div class="empty pretty">Chưa có khoản vay nợ nào. Thêm khoản mình vay, thẻ tín dụng hoặc khoản người khác nợ mình.</div>`;
 }
 function homeGold(){
   if (!S.gold.length) return '';
@@ -2145,7 +2207,7 @@ function homeGold(){
 }
 function homeLoans(){
   const st = S.loans.map(L => [L, loanState(L)]).filter(([L, x]) => !x.done && (x.next || L.method === 'free'));
-  const any = S.assets.length || S.savings.some(v => !v.closed) || S.gold.length || S.loans.length || (S.cards || []).length;
+  const any = S.assets.length || S.savings.some(v => !v.closed) || S.gold.length || S.loans.length || (S.cards || []).length || (S.lends || []).length;
   if (!any) { $('#homeLoan').innerHTML = ''; return; }
   const w = netWorth(); const ch = '<span class="ch"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>';
   let rows = `<button class="frow big" data-go="nw">${fi('wallet')}<span><div class="s">Tài sản ròng</div><div class="v num">${hid(shortMoney(w.net))}</div><div class="s">Tài sản ${hid(shortMoney(w.assets))} · Nợ ${hid(shortMoney(w.debt))}</div></span><span></span>${ch}</button>`;
@@ -2154,6 +2216,8 @@ function homeLoans(){
     rows += `<button class="frow" data-go="gold">${fi('gold')}<span><div class="t">Vàng & bạc tích trữ</div><div class="s">${heldTxt(ks)}</div></span><span class="r" style="color:${un >= 0 ? 'var(--in)' : 'var(--out)'}">${pr.length ? `${un >= 0 ? '+' : '−'}${shortMoney(Math.abs(un))}` : ''}</span>${ch}</button>`; }
   (S.cards || []).map(c => [c, cardState(c)]).filter(([, x]) => x.bal > 0).forEach(([c, x]) => { const late = x.stmt && x.dueIn < 0;
     rows += `<button class="frow" data-go="loan">${fi('card')}<span><div class="t">${esc(c.name)}</div><div class="s" style="${late ? 'color:var(--out)' : ''}">${x.stmt ? `${late ? `Quá hạn ${-x.dueIn} ngày · ` : ''}Sao kê ${shortMoney(x.stmt)} · hạn ${dM(x.due)}` : `Kỳ này đã tiêu ${shortMoney(x.after)}`}</div></span><span class="r">${hid(shortMoney(x.bal))}</span>${ch}</button>`; });
+  { const ls = (S.lends || []).map(x => [x, lendState(x)]).filter(([, t]) => !t.done); if (ls.length) { const tot = ls.reduce((a, [, t]) => a + t.left, 0); const nx = ls.filter(([x]) => x.due).sort((a, b) => a[0].due.localeCompare(b[0].due))[0]; const late = nx && nx[1].dueIn < 0;
+    rows += `<button class="frow" data-go="loan">${fi('people')}<span><div class="t">Người khác đang nợ</div><div class="s" style="${late ? 'color:var(--out)' : ''}">${ls.length} người${nx ? ` · ${esc(nx[0].name)} hẹn ${dM(nx[0].due)}${late ? ' (quá hạn)' : ''}` : ''}</div></span><span class="r" style="color:var(--in)">+${hid(shortMoney(tot))}</span>${ch}</button>`; } }
   st.slice(0, 3).forEach(([L, x]) => { const free = L.method === 'free';
     const sub = free ? `Còn nợ ${shortMoney(x.B)}` : `Còn ${x.left} kỳ · đến hạn ${dM(x.next.due)}`; const d = x.next ? daysTo(x.next.due) : 99;
     rows += `<button class="frow" data-go="loan">${fi(free ? 'people' : 'bank')}<span><div class="t">${esc(L.name)}</div><div class="s" style="${d < 0 ? 'color:var(--out)' : ''}">${d < 0 ? `Quá hạn ${-d} ngày · ` : ''}${sub}</div></span><span class="r">${free ? '' : `${shortMoney(x.next.total)}<small class="muted" style="font-weight:700">/tháng</small>`}</span>${ch}</button>`; });
@@ -2600,11 +2664,12 @@ function openAsset(id){
 /* ================= TỔNG TÀI SẢN ================= */
 const atIc = a => a[3] ? ico(a[3]) : a[0];
 const NWG = {bank:ATYPES.bank, cash:ATYPES.cash, saving:['🐷', 'Sổ tiết kiệm', '#EC4899', 'tiet-kiem'], gold:['🟡', 'Vàng', '#E7AE34'], silver:['⚪', 'Bạc', '#94A3B8'], stock:ATYPES.stock, fund:ATYPES.fund, realestate:ATYPES.realestate, vehicle:ATYPES.vehicle, receivable:ATYPES.receivable, other:ATYPES.other};
-const NWSEG = {saving:'save', gold:'gold', silver:'gold'};
+const NWSEG = {saving:'save', gold:'gold', silver:'gold', receivable:'loan'};
 function netWorth(){
   const g = {}; const add = (k, v) => { if (v) g[k] = (g[k] || 0) + v; };
   S.assets.forEach(a => add(a.type, assetVal(a)));
   S.savings.filter(v => !v.closed).forEach(v => add('saving', saveState(v).value));
+  add('receivable', lendLeft()); // người khác đang nợ mình
   let noPrice = false;
   Object.values(goldCalc().kinds).forEach(k => { if (k.qty > 0) { if (!k.price) noPrice = true; add(k.metal, k.price ? k.value : k.cost); } });
   const debt = S.loans.reduce((s, L) => s + loanState(L).B, 0) + (S.cards || []).reduce((s, c) => s + cardState(c).bal, 0);
@@ -2823,6 +2888,8 @@ $('#goldPane').onclick = e => { const b = e.target.closest('[data-gact]'); if (!
 $('#goalSeg').onclick = e => { const b = e.target.closest('[data-gseg]'); if (b) { goalSeg = b.dataset.gseg; setHash(); renderGoal(); } };
 $('#loanNew').onclick = () => openLoanForm(null);
 $('#cardNew').onclick = () => openCardForm(null);
+$('#lendNew').onclick = () => openLend(null);
+$('#lendList').onclick = e => { const b = e.target.closest('[data-lend]'); if (!b) return; const [a, id] = b.dataset.lend.split('|'); if (a === 'pay') openLendPay(id); else openLend(id); };
 $('#cardList').onclick = e => { const b = e.target.closest('[data-card]'); if (!b) return; const [a, id] = b.dataset.card.split('|'); if (a === 'pay') openCardPay(id); else openCardForm(id); };
 $('#loanList').onclick = e => { const p = e.target.closest('[data-lpay]'); if (p) return openPay(p.dataset.lpay); const o = e.target.closest('[data-lopen]'); if (o) openLoan(o.dataset.lopen); };
 $('#fundList').addEventListener('change', e => { const k = e.target.dataset.fact; if (!k) return; const inc = incOf(curM); inc.actual = inc.actual || {}; inc.actual[k] = parseMoney(e.target.value); save(); renderStat(); });
@@ -3180,6 +3247,14 @@ async function exportExcel(year, opts = {}){
     [28, 16, 13, 13, 26, 15, 12, 16, 10, 16].forEach((w, k) => lw.getColumn(k + 1).width = w);
   }
 
+  /* ---- Cho vay (sheet bổ sung) ---- */
+  if ((S.lends || []).length) {
+    const dw = wb.addWorksheet('Cho vay', {views:[{state:'frozen', ySplit:1}]});
+    ['NGƯỜI NỢ', 'NGÀY CHO VAY', 'HẸN TRẢ', 'SỐ TIỀN', 'ĐÃ TRẢ', 'CÒN NỢ', 'GHI CHÚ'].forEach((t, k) => { const c = dw.getCell(1, k + 1); c.value = t; c.font = {bold:true, color:{argb:'FFFFFFFF'}}; c.fill = fill('FF138D83'); c.alignment = {horizontal:'center'}; });
+    S.lends.forEach((x, i) => { const t = lendState(x); const r = i + 2; [x.name, dmy(x.date), x.due ? dmy(x.due) : '', x.amount, t.paid, {formula:`D${r}-E${r}`, result:t.left}, x.note || ''].forEach((v, k) => { const c = dw.getCell(r, k + 1); c.value = v; if (k >= 3 && k <= 5) c.numFmt = '#,##0'; }); });
+    [22, 14, 14, 16, 16, 16, 32].forEach((wd, k) => dw.getColumn(k + 1).width = wd);
+  }
+
   /* ---- Vàng & bạc (sheet bổ sung) ---- */
   if (S.gold.length) {
     const gw = wb.addWorksheet('Vàng & bạc', {views:[{state:'frozen', ySplit:1}]});
@@ -3355,7 +3430,7 @@ function demoData(){
 
 /* ================= Khởi động ================= */
 load();
-window.__app = {classify, exportExcel, importExcel, loanState, simulate, planPay, goldCalc, cardState, spendable, get S(){ return S; }};
+window.__app = {classify, exportExcel, importExcel, loanState, simulate, planPay, goldCalc, cardState, lendState, spendable, get S(){ return S; }};
 const h = location.hash.slice(1);
 const ROUTES = VIEWS.concat(['nw', 'save', 'asset', 'loan', 'gold', 'budget', 'accum', 'year', 'stat']);
 const importing = importFromHash();
