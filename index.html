@@ -822,6 +822,21 @@ html.asklock,html.asklock body{overflow:hidden;overscroll-behavior:none}.sheet.a
 .gprow{display:grid;grid-template-columns:1fr 118px 30px;gap:6px;align-items:center;margin-bottom:6px}
 .gpmine{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--mint-soft);border-radius:14px;padding:11px 13px;margin-top:10px;font-size:13.5px;font-weight:700}
 .gpmine b{font-size:18px;font-weight:900}
+.bellbtn{position:relative}
+.bellbtn .bdg{position:absolute;top:2px;right:1px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:var(--out);color:#fff;font-size:11px;font-weight:900;font-style:normal;display:grid;place-items:center;border:2px solid var(--bg);line-height:1}
+.bellbtn.ring svg{animation:bellRing 4s ease-in-out infinite;transform-origin:50% 8%}
+@keyframes bellRing{0%,86%,100%{transform:rotate(0)}88%{transform:rotate(14deg)}91%{transform:rotate(-12deg)}94%{transform:rotate(8deg)}97%{transform:rotate(-4deg)}}
+.mimirow.unread{border-left:4px solid var(--primary)}
+.bellrow{flex-direction:row;align-items:center;gap:10px}.bellrow .bic{font-size:18px;width:26px;text-align:center;flex-shrink:0}.bellrow b{font-size:14px}
+.bellrow.over{border-left:4px solid var(--out)}
+@media (prefers-reduced-motion:reduce){.bellbtn.ring svg{animation:none}}
+#askFab .fabtip{white-space:normal;width:max-content;max-width:min(250px,calc(100vw - 110px));text-align:left;line-height:1.4;font-size:13.5px;padding:10px 13px}
+#askFab .fabtip em{display:block;font-style:normal;font-size:12px;opacity:.85;margin-top:4px}
+#askFab.talk .mimi .mi-m1{animation:none;opacity:0}#askFab.talk .mimi .mi-m2{animation:none;opacity:1;transform:none}
+#askFab.talk .mimi .mi-ch ellipse{animation:none;opacity:.95;transform:scale(1.25)}#askFab.talk .mimi .mi-arm{animation-duration:1.2s}
+.asksee{text-align:left;margin:2px 0 12px}.asksee small,.askor{display:block;font-size:11.5px;font-weight:900;letter-spacing:.05em;color:var(--primary-ink);margin:0 2px 7px;text-align:left}
+.asksee button{display:grid;grid-template-columns:30px 1fr 18px;gap:9px;align-items:center;width:100%;text-align:left;border:0;background:var(--card);box-shadow:var(--shadow);border-left:4px solid var(--primary);border-radius:14px;padding:10px 12px;margin-bottom:7px;color:var(--ink)}
+.asksee button span{font-size:19px;text-align:center}.asksee button b{font-size:13.5px;font-weight:700;line-height:1.4}.asksee button svg{width:17px;height:17px;color:var(--primary-ink)}
 </style>
 <script>
 /* Ngũ hành – design tokens. Màu Primary/Light/Soft cố định theo bảng; các token phụ được tính để bảo đảm tương phản. */
@@ -880,7 +895,7 @@ html.asklock,html.asklock body{overflow:hidden;overscroll-behavior:none}.sheet.a
   <section id="v-home">
     <div class="brandbar">
       <div class="brand"><span class="mk" data-mark="logo"></span><div><b>Nhà Mình</b><small>Quản lý tài chính gia đình</small></div></div>
-      <div class="row"><button class="streak" id="streak" data-go="stat">🔥 0</button><button class="iconbtn" data-go="set" aria-label="Cài đặt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></div>
+      <div class="row"><button class="streak" id="streak" data-go="stat">🔥 0</button><button class="iconbtn bellbtn" id="bellBtn" aria-label="Thông báo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><i class="bdg hidden" id="bellBdg"></i></button><button class="iconbtn" data-go="set" aria-label="Cài đặt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></div>
     </div>
     <div class="hello2"><h2 id="helloName">Chào bạn 👋</h2><p id="helloSub">Cùng quản lý tài chính gia đình tốt hơn mỗi ngày nhé.</p></div>
     <div id="homeBanner"></div>
@@ -1373,7 +1388,7 @@ function renderHome(){
   else if (!tdList.length && !S.noSpend.includes(today()) && new Date().getHours() >= 18) b = `<span class="pretty">Hôm nay chưa có khoản chi nào.</span><span class="acts"><button class="btn-s" data-act="noT">Hôm nay không chi</button></span>`;
   else if (S.tx.length >= 20 && Date.now() - (S.lastBackup || 0) > 30 * 864e5) b = `<span class="pretty">Đã hơn 30 ngày chưa sao lưu dữ liệu.</span><span class="acts"><button class="btn-s pri" data-act="backup">Sao lưu</button></span>`;
   $('#homeBanner').innerHTML = b ? `<div class="banner" style="margin:0 0 12px">${b}</div>` : '';
-  if (typeof renderMimiCard === 'function' && S.mimi) renderMimiCard();
+  if (typeof renderMimiCard === 'function' && S.mimi) { renderMimiCard(); renderBell(); }
 }
 function txRow(t){
   return `<button class="tx" data-id="${t.id}">${cic(t.type)}<span class="main"><div class="t1">${esc(t.detail)}</div><div class="t2"><span class="dot ${t.level}"></span>${LV[t.level].name}${t.card ? '<span class="cctag">💳 Thẻ</span>' : ''}${t.split ? `<span class="cctag">👥 ${t.split.n}</span>` : ''}${t.photo ? '<span class="cctag">📷</span>' : ''} · ${dayLabel(t.date)}${timeOf(t)}</div></span><span class="amt">- ${fmt(t.amount)} đ</span></button>`;
@@ -3119,6 +3134,45 @@ function editPhotoAct(t, a){
   if (a === 'ph:del' && confirm('Xóa ảnh của khoản chi này?')) { photoDel(t.id); delete t.photo; save(); render(); editPhotoInit(t); }
 }
 
+/* ================= Chuông thông báo ================= */
+// Số trên chuông = việc đang cần chú ý + thông báo Mimi chưa xem (tính từ lần mở chuông gần nhất)
+const nowHM = () => { const n = new Date(); return `${ymd(n)}T${pad(n.getHours())}:${pad(n.getMinutes())}`; };
+function bellItems(){
+  const read = (S.mimi && S.mimi.readAt) || '', nowS = nowHM();
+  const log = ((S.mimi && S.mimi.log) || []).filter(x => x.at <= nowS && x.at >= addDays(today(), -14)).sort((a, b) => b.at.localeCompare(a.at));
+  return {alerts:computeAlerts(), log, unread:log.filter(x => x.at > read).length};
+}
+function renderBell(){
+  const b = $('#bellBdg'); if (!b) return; const it = bellItems(), n = it.unread + it.alerts.filter(x => x.lv === 'over').length;
+  b.textContent = n > 9 ? '9+' : n; b.classList.toggle('hidden', !n);
+  $('#bellBtn').classList.toggle('ring', it.unread > 0);
+}
+function openBell(tab){
+  tab = tab || 'new'; const it = bellItems(), read = (S.mimi && S.mimi.readAt) || '';
+  const wd = d => ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][new Date(d + 'T12:00:00').getDay()];
+  const when = at => at.slice(0, 10) === today() ? `Hôm nay ${at.slice(11)}` : at.slice(0, 10) === addDays(today(), -1) ? `Hôm qua ${at.slice(11)}` : `${wd(at.slice(0, 10))} ${dM(at.slice(0, 10))} · ${at.slice(11)}`;
+  const nowS = nowHM(), plan = tab === 'next' ? mimiPlan().filter(x => x.at > nowS && x.at <= addDays(today(), 7) + 'T23:59') : [];
+  sheet(`<div class="askhead" style="margin:-18px -16px 12px;border-radius:24px 24px 0 0"><span class="askav big">${mascot()}</span><div class="askttl"><b>Thông báo</b><small><i></i>Mimi gom mọi việc cần chú ý ở đây</small></div>
+      <button class="askx" data-sa="cfg" aria-label="Cài đặt thông báo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+      <button class="askx" data-sa="close" aria-label="Đóng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="segment" style="margin-bottom:12px"><button data-sa="t:new" class="${tab === 'new' ? 'on' : ''}">Mới${it.unread ? ` (${it.unread})` : ''}</button><button data-sa="t:next" class="${tab === 'next' ? 'on' : ''}">Sắp tới</button></div>
+    ${tab === 'new' ? `
+      ${it.alerts.length ? `<div class="subh">ĐANG CẦN CHÚ Ý</div>${it.alerts.map((x, i) => `<button class="mimirow bellrow${x.lv === 'over' ? ' over' : ''}" data-sa="al:${i}"><span class="bic">${x.ic}</span><span><b>${esc(x.t)}</b></span></button>`).join('')}` : ''}
+      <div class="subh">MIMI ĐÃ NHẮC</div>
+      ${it.log.length ? it.log.map((x, i) => `<button class="mimirow${x.at > read ? ' unread' : ''}" data-sa="lg:${i}"><span class="mimit">${when(x.at)}</span><b>${esc(x.title)}</b><small>${esc(x.body)}</small></button>`).join('') : '<div class="empty pretty">Chưa có thông báo nào trong 14 ngày qua 🌿</div>'}`
+    : plan.length ? plan.map((x, i) => `<button class="mimirow" data-sa="pl:${i}"><span class="mimit">${when(x.at)} · ${NF_GRP[x.code[0]] || 'Gộp nhiều việc'}</span><b>${esc(x.title)}</b><small>${esc(x.body)}</small></button>`).join('') : '<div class="empty pretty">7 ngày tới chưa có gì cần nhắc, mọi thứ đang ổn 🌿</div>'}`,
+  a => {
+    if (a.startsWith('t:')) return openBell(a.slice(2));
+    if (a === 'cfg') { closeSheet(); goSet('#notifCard'); return; }
+    if (a.startsWith('lg:')) return openMimiItem(it.log[Number(a.slice(3))]);
+    if (a.startsWith('pl:')) return openMimiItem(plan[Number(a.slice(3))]);
+    if (a.startsWith('al:')) { const x = it.alerts[Number(a.slice(3))]; closeSheet();
+      if (x.go) go(x.go); else if (x.act) { const b = document.createElement('button'); b.dataset.act = x.act; b.hidden = true; document.body.appendChild(b); b.click(); b.remove(); } }
+  });
+  if (tab === 'new' && S.mimi) { S.mimi.readAt = nowHM(); save(); renderBell(); }
+}
+$('#bellBtn').onclick = () => openBell();
+
 /* ================= Điều hướng ================= */
 const VIEWS = ['home', 'tx', 'add', 'goal', 'plan', 'set'];
 let view = 'home', prevView = 'home';
@@ -3144,6 +3198,7 @@ function go(v){
   $$('section[id^=v-]').forEach(s => s.classList.toggle('hidden', s.id !== 'v-' + v));
   setHash();
   window.scrollTo(0, 0); render();
+  if (typeof mimiNudge === 'function') { clearTimeout(go.nt); go.nt = setTimeout(mimiNudge, 1200); }
 }
 
 /* ================= Sự kiện ================= */
@@ -3941,9 +3996,9 @@ const ASK = [
     no:['hoa don dien', 'chia hoa don'],
     a:'Trên màn ghi chi, bấm nút <b>📷</b> cạnh ô số tiền để chụp hoặc chọn ảnh, rồi Lưu như bình thường. Khoản đã ghi thì vào <b>Giao dịch → Danh sách</b>, bấm vào khoản đó để thêm, xem, đổi hoặc xóa ảnh. Ảnh được thu nhỏ để tiết kiệm bộ nhớ và có trong file sao lưu.',
     acts:[{t:'Mở màn ghi chi', f:() => { goAdd('out'); hl('#photoBtn'); }}], rel:['group', 'backup']},
-  {id:'notif', q:'Bật thông báo, đổi giờ nhắc ở đâu?', k:['thong bao', 'nhac nho', 'gio nhac', 'bat thong bao', 'tat thong bao', 'notification', 'man hinh khoa', 'nhac toi', 'lich nhac', 'mimi nhac'],
+  {id:'notif', q:'Bật thông báo, đổi giờ nhắc ở đâu?', k:['thong bao', 'chuong', 'chuong thong bao', 'nhac nho', 'gio nhac', 'bat thong bao', 'tat thong bao', 'notification', 'man hinh khoa', 'nhac toi', 'lich nhac', 'mimi nhac'],
     no:['muc canh bao', 'canh bao chi'],
-    a:'Vào <b>Cài đặt → Thông báo Mimi</b>: bấm <b>Bật thông báo</b>, chọn nhóm muốn nhận (nhắc ghi chép, cảnh báo chi tiêu, đến hạn, lương, tổng kết, sao lưu), đổi <b>giờ nhắc ghi chép</b> và <b>giờ yên lặng</b>. Bấm <b>Lịch 7 ngày tới</b> để xem trước Mimi sẽ nhắc gì. Đã ghi chép thì Mimi không nhắc, mỗi ngày tối đa 2 thông báo.',
+    a:'Bấm <b>chuông 🔔</b> ở đầu Trang chủ để xem các thông báo mới và lịch sắp tới. Muốn chỉnh, vào <b>Cài đặt → Thông báo Mimi</b>: bấm <b>Bật thông báo</b>, chọn nhóm muốn nhận (nhắc ghi chép, cảnh báo chi tiêu, đến hạn, lương, tổng kết, sao lưu), đổi <b>giờ nhắc ghi chép</b> và <b>giờ yên lặng</b>. Bấm <b>Lịch 7 ngày tới</b> để xem trước Mimi sẽ nhắc gì. Đã ghi chép thì Mimi không nhắc, mỗi ngày tối đa 2 thông báo.',
     acts:[{t:'Mở cài đặt thông báo', f:() => goSet('#notifCard')}, {t:'Xem lịch 7 ngày tới', f:() => { go('set'); openMimiList('plan'); }}], rel:['alert', 'streak']},
   {id:'flow', q:'Xem biểu đồ chi tiêu theo ngày, tháng, thứ?', k:['bieu do', 'bien dong', 'theo ngay', 'theo thu', 'thu may', 'ngay nao chi nhieu', 'thu nao chi nhieu', 'cuoi tuan', 'xu huong', 'chart'],
     a:'Vào <b>Giao dịch → Tổng quan</b>, thẻ <b>Biến động chi tiêu</b> có 3 tab: <b>Theo ngày</b> (từng ngày trong tháng), <b>Theo tháng</b> (12 tháng gần nhất) và <b>Theo thứ</b> (trung bình mỗi thứ trong 3 tháng). Cột chia màu theo Cần thiết, Nên có, Lãng phí; đường nét đứt là mức trung bình. Bấm vào một cột để xem chi tiết.',
@@ -4045,10 +4100,12 @@ function askAnswer(text, id){
 const ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 function askMsg(m){
   if (m.who === 'hi') return `<div class="askhi">${mascot('wave')}<h3>Chào ${esc(S.settings.owner || 'bạn')}, mình là ${ASK_NAME} 👋</h3><p class="pretty">Bạn cần làm gì trong Nhà Mình? Hỏi mình bằng lời của bạn, có dấu hay không dấu đều được. Mình chỉ cách và đưa bạn tới đúng chỗ.</p>
+    ${(() => { const sg = mimiSuggest().filter(x => x.acts.length && !x.tip && x.key !== askSkip).slice(0, 3); return sg.length ? `<div class="asksee"><small>HÔM NAY MIMI THẤY</small>${sg.map(x => { const k = ASK_DYN.push(x.acts) - 1; return `<button data-sa="dyn:${k}:0"><span>${x.ic}</span><b class="pretty">${x.text}</b>${ARROW}</button>`; }).join('')}</div><small class="askor">HOẶC HỎI MIMI</small>` : ''; })()}
     <div class="askgrid">${ASK_POP.map(c => `<button data-sa="q:${c}"><span>${ASK_IC[c] || '💡'}</span>${ASK_SHORT[c] || askById(c).q}</button>`).join('')}</div></div>`;
   if (m.who === 'me') return `<div class="bub me">${m.html}</div>`;
   if (m.who === 'typing') return `<div class="askrow asktyping"><span class="askav">${mascot('still')}</span><div class="bub bot"><i></i><i></i><i></i></div></div>`;
   return `<div class="askrow"><span class="askav">${mascot('still')}</span><div class="bub bot"><div class="pretty">${m.html}</div>
+    ${m.dyn !== undefined && ASK_DYN[m.dyn] ? `<div class="askacts">${ASK_DYN[m.dyn].map((a, i) => `<button class="askgo${i ? ' sec' : ''}" data-sa="dyn:${m.dyn}:${i}"><span>${a.t}</span>${ARROW}</button>`).join('')}</div>` : ''}
     ${m.acts && askById(m.acts).acts.length ? `<div class="askacts">${askById(m.acts).acts.map((a, i) => `<button class="askgo${i ? ' sec' : ''}" data-sa="do:${m.acts}:${i}"><span>${a.t}</span>${ARROW}</button>`).join('')}</div>` : ''}
     ${m.chips && m.chips.length ? `<div class="askq"><small>${m.alt ? 'Có thể bạn muốn hỏi' : m.acts ? 'Bạn có thể hỏi tiếp' : 'Chủ đề'}</small>${m.chips.map(c => `<button data-sa="q:${c}">${m.acts ? '' : (ASK_IC[c] || '💡') + ' '}${askById(c).q}</button>`).join('')}</div>` : ''}</div></div>`;
 }
@@ -4064,8 +4121,10 @@ function askSend(text, id){
   log.insertAdjacentHTML('beforeend', askMsg({who:'typing'})); log.scrollTo({top:log.scrollHeight, behavior:'smooth'});
   setTimeout(() => { log.querySelector('.asktyping')?.remove(); askLog.push(ans); renderAsk(); }, navigator.webdriver ? 60 : 550);
 }
-function openAsk(){
+function openAsk(n){
   if (!askLog.length) askLog.push(askHi());
+  askSkip = n ? n.key : askSkip;
+  if (n && n.acts && n.acts.length) askLog.push({who:'bot', html:n.text, dyn:ASK_DYN.push(n.acts) - 1});
   sheet(`<div class="askhead"><span class="askav big">${mascot()}</span><div class="askttl"><b>${ASK_NAME}</b><small><i></i>Luôn sẵn sàng giúp bạn</small></div>
       <button class="askx" data-sa="clear" aria-label="Làm mới cuộc trò chuyện"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
       <button class="askx" data-sa="close" aria-label="Đóng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
@@ -4074,6 +4133,7 @@ function openAsk(){
   a => {
     if (a === 'clear') { askLog = [askHi()]; renderAsk(true); return; }
     if (a.startsWith('q:')) { const x = askById(a.slice(2)); askSend(x.q, x.id); return; }
+    if (a.startsWith('dyn:')) { const [, k, i] = a.split(':'); closeSheet(); ASK_DYN[k][Number(i)].f(); return; }
     if (a.startsWith('do:')) { const [, id, i] = a.split(':'); closeSheet(); askById(id).acts[Number(i)].f(); }
   });
   $('#layer .sheet').classList.add('asksheet');
@@ -4104,19 +4164,58 @@ function askFitKb(){
   // khung chat bị đóng (bấm nền, nút đóng, chuyển màn): gỡ theo dõi
   const mo = new MutationObserver(() => { if (!$('#layer .asksheet')) { mo.disconnect(); off(); } }); mo.observe($('#layer'), {childList:true});
 }
-document.addEventListener('click', e => { if (e.target.closest('[data-ask]')) { e.preventDefault(); openAsk(); } });
+document.addEventListener('click', e => { const a = e.target.closest('[data-ask]'); if (!a) return; e.preventDefault(); const n = a.id === 'askFab' && a.classList.contains('tip') ? mimiNow : null; mimiNow = null; a.classList.remove('tip', 'talk'); openAsk(n); });
 // Nút Mimi nổi ở góc phải, trên thanh điều hướng; thu nhỏ khi cuộn xuống, ẩn ở màn ghi khoản chi
 (() => {
   const fab = document.createElement('button'); fab.id = 'askFab'; fab.dataset.ask = '1'; fab.setAttribute('aria-label', `Hỏi trợ lý ${ASK_NAME}`);
   fab.innerHTML = `<span class="halo"></span>${mascot()}<span class="fabtip"></span>`; document.body.appendChild(fab);
   let lastY = 0; addEventListener('scroll', () => { const y = scrollY; fab.classList.toggle('mini', y > 60 && y > lastY); lastY = y; }, {passive:true});
-  const TIPS = ['Cần gì cứ hỏi Bé Nhà Mimi nhé!', 'Tạo khoản vay ở đâu? Hỏi Mimi!', 'Bé Nhà Mimi chỉ đường nè 👋', 'Quên cách làm? Có Mimi đây!'];
-  setTimeout(() => { let seen = ''; try { seen = localStorage.getItem('nm.asktip') || ''; } catch (e) {}
-    if (seen === today() || view !== 'home' || navigator.webdriver) return;
-    try { localStorage.setItem('nm.asktip', today()); } catch (e) {}
-    fab.querySelector('.fabtip').textContent = TIPS[Math.floor(Math.random() * TIPS.length)];
-    fab.classList.add('tip'); setTimeout(() => fab.classList.remove('tip'), 5200); }, 2200);
+  setTimeout(() => mimiNudge(), 2200);
 })();
+
+/* ================= Mimi chủ động ================= */
+// Mimi tự lên tiếng: bong bóng lời nói cạnh nút Mimi + mục "Hôm nay Mimi thấy" khi mở chat.
+// Ưu tiên: vượt mức/quá hạn > nhắc ghi chép > đến hạn, lương > động viên, nhận xét > mẹo theo màn hình.
+// Giới hạn: mỗi chuyện 1 lần/ngày, tối đa 4 bong bóng/ngày, không nói ở màn ghi chi hay khi đang mở bảng khác.
+const ASK_DYN = [];
+let mimiNow = null, askSkip = '';
+function mimiSuggest(){
+  const out = [], h = new Date().getHours(), t = today(), ym = t.slice(0, 7), name = S.settings.owner || 'bạn', H = !!S.settings.hide;
+  const mm = x => H ? '' : ` (${shortMoney(x)})`;
+  const logged = d => S.tx.some(x => x.date === d) || S.noSpend.includes(d);
+  computeAlerts().forEach(x => out.push({key:'al:' + x.t.replace(/[\d.,]+/g, '#').slice(0, 40), pri:x.lv === 'over' ? 0 : 3, ic:x.ic, text:esc(x.t),
+    acts:[{t:'Xem ngay', f:() => { if (x.go) go(x.go); else if (x.act) { const b = document.createElement('button'); b.dataset.act = x.act; b.hidden = true; document.body.appendChild(b); b.click(); b.remove(); } }}]}));
+  if (S.tx.length && !logged(t) && h >= 18) out.push({key:'log-today', pri:1, ic:'🏠', text:`Đã ${h} giờ rồi mà hôm nay chưa có khoản nào. ${name} ghi nhanh với Mimi nhé, hay hôm nay không tiêu gì?`,
+    acts:[{t:'Ghi khoản chi', f:() => goAdd('out')}, {t:'Hôm nay không chi', f:() => { S.noSpend.push(today()); save(); go('home'); toast('Đã giữ chuỗi ngày 🔥'); }}]});
+  const y = addDays(t, -1);
+  if (S.tx.length && !logged(y) && h < 18) out.push({key:'log-yday', pri:1, ic:'🗓️', text:'Hôm qua chưa có khoản nào. Ghi bù trong 1 phút để sổ không bị hổng nhé!', acts:[{t:'Ghi bù hôm qua', f:() => goAdd('out', y)}]});
+  const st = streak();
+  if ([3, 7, 14, 30, 50, 100, 200, 365].includes(st) && logged(t)) out.push({key:'streak-' + st, pri:2, ic:'🎉', text:`${st} ngày ghi chép liên tục! ${name} giỏi quá, Mimi tự hào lắm!`, acts:[{t:'Xem chuỗi ngày', f:() => go('stat')}]});
+  { const w = wasteInfo(ym); if (w.cap && !w.state && w.pct >= .6) out.push({key:'waste60', pri:4, ic:'🧺', text:`Lãng phí tháng này đã ${Math.round(w.pct * 100)}% hạn mức${mm(w.spent)}. Còn ${w.daysLeft} ngày, mình chậm lại chút nha.`, acts:[{t:'Xem khoản lãng phí', f:() => mimiGo('waste')}]}); }
+  { const s = spendable(ym); if (incomeOf(ym) && s.days && s.left > 0 && h >= 7) out.push({key:'left', pri:6, ic:'💰', text:H ? `Tháng này vẫn còn tiền để tiêu cho ${s.days} ngày tới.` : `Tháng này còn được tiêu ${shortMoney(s.left)}, khoảng ${shortMoney(s.left / s.days)}/ngày cho ${s.days} ngày.`, acts:[{t:'Xem tổng quan', f:() => mimiGo('tx')}]}); }
+  { const nowS = `${t}T${pad(h)}:${pad(new Date().getMinutes())}`; mimiPlan().filter(x => x.at.slice(0, 10) === t && x.at > nowS && /^[CD]/.test(x.code)).slice(0, 2)
+      .forEach(x => out.push({key:'plan:' + x.key, pri:2, ic:x.code[0] === 'D' ? '💰' : '📅', text:`${esc(x.title)}. ${esc(x.body)}`, acts:[{t:'Làm ngay', f:() => openMimiItem(x)}]})); }
+  { const dow = new Date().getDay(); if ((dow === 0 && h >= 17) || (dow === 1 && h < 12)) { const mon = addDays(t, dow === 0 ? -6 : -7), sun = addDays(mon, 6), a = S.tx.filter(x => x.date >= mon && x.date <= sun).reduce((s, x) => s + x.amount, 0);
+      if (a) out.push({key:'week', pri:5, ic:'📊', text:H ? 'Tuần này khép lại rồi, xem lại biểu đồ chi tiêu cùng Mimi nhé!' : `Tuần này ${name} chi ${shortMoney(a)}. Xem ngày nào chi nhiều nhất nhé!`, acts:[{t:'Xem biểu đồ', f:() => mimiGo('flowDay')}]}); } }
+  // Mẹo theo màn hình (mỗi màn chỉ 1 lần)
+  const tips = {loan:['🤝', 'Ai mượn tiền của bạn thì ghi ở “Thêm khoản cho vay”, Mimi sẽ nhắc khi tới hẹn trả.'], gold:['🪙', 'Giá mua lại mỗi tiệm khác nhau, bấm vào loại vàng để nhập giá theo từng nơi bạn đang giữ.'],
+    tx:['📈', 'Bấm vào chữ tháng ▾ để xem tháng cũ, bấm vào cột biểu đồ để xem chi tiết từng ngày.'], budget:['🎯', 'Đặt ngân sách cho Ăn uống trước nhé, đó thường là khoản lớn nhất của gia đình.'],
+    set:['🔔', 'Bật Thông báo Mimi để được nhắc ghi chép và các khoản đến hạn ngay trên màn hình khóa.'], save:['🐷', 'Thêm sổ tiết kiệm để Mimi tính lãi và nhắc trước ngày đáo hạn.']};
+  const vk = view === 'goal' ? goalSeg : view === 'plan' ? planSeg : view;
+  if (tips[vk] && !(S.mimi.tips || {})[vk]) out.push({key:'tip:' + vk, pri:7, ic:tips[vk][0], text:tips[vk][1], tip:vk, acts:[]});
+  return out.sort((a, b) => a.pri - b.pri);
+}
+function mimiNudge(){
+  const fab = $('#askFab'); if (!fab || !S.mimi || view === 'add' || $('#layer').innerHTML || document.visibilityState !== 'visible') return;
+  const m = S.mimi; if (m.nudgeDay !== today()) { m.nudgeDay = today(); m.nudged = {}; }
+  if (Object.keys(m.nudged).length >= 4) return;
+  const x = mimiSuggest().find(s => !m.nudged[s.key] && (s.pri < 6 || s.tip)); if (!x) return;
+  m.nudged[x.key] = 1; if (x.tip) { m.tips = m.tips || {}; m.tips[x.tip] = 1; } save();
+  mimiNow = x;
+  const tip = fab.querySelector('.fabtip'); tip.innerHTML = `${x.text}${x.acts.length ? '<em>Bấm vào Mimi để xem →</em>' : ''}`;
+  fab.classList.remove('mini'); fab.classList.add('tip', 'talk');
+  clearTimeout(mimiNudge.t); mimiNudge.t = setTimeout(() => { fab.classList.remove('tip', 'talk'); mimiNow = null; }, x.acts.length ? 8000 : 6000);
+}
 
 /* ================= Mimi nhắc: bộ tính kịch bản thông báo ================= */
 // Theo tài liệu tai-lieu/kich-ban-thong-bao-mimi.md. Tính lịch 15 ngày tới từ dữ liệu trên máy;
@@ -4325,7 +4424,7 @@ mimiTick(); if (S.mimi.lastOpen !== today()) { S.mimi.lastOpen = today(); save()
 const mimiHash = /^mimi=(.+)$/.exec(h);
 go(ROUTES.includes(h) ? h : 'home');
 if (mimiHash) { try { history.replaceState(null, '', location.pathname + location.search + '#home'); } catch (e) {} mimiGo(decodeURIComponent(mimiHash[1])); }
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { mimiTick(); if (S.mimi.lastOpen !== today()) { S.mimi.lastOpen = today(); save(); } if (view === 'home') renderMimiCard(); } });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { mimiTick(); if (S.mimi.lastOpen !== today()) { S.mimi.lastOpen = today(); save(); } if (view === 'home') { renderMimiCard(); renderBell(); } } });
 window.addEventListener('hashchange', () => { const t = location.hash.slice(1); if (ROUTES.includes(t) && t !== view) go(t); });
 if (!canStore) $('#storageWarn').classList.remove('hidden');
 // Màn chào: hiện tối thiểu 0,9 giây từ lúc mở rồi mờ dần (bỏ qua khi chạy kiểm thử tự động; ?splash=1 giữ nguyên để chụp ảnh khởi động)
