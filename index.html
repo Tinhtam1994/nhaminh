@@ -345,6 +345,7 @@ nav.tabs button:focus{outline:none}
 /* iPhone: không tự phóng to khi chạm ô nhập (chữ ≥ 16px), không tràn ngang */
 input,select,textarea,.inp{font-size:16px}
 .grid2>*{min-width:0}
+.grid2:has(>.hidden){grid-template-columns:1fr}
 .inp[type=date],.inp[type=time],.inp[type=month]{-webkit-appearance:none;appearance:none;min-width:0;display:block;text-align:left;line-height:41px}
 .app,.sheet{overflow-x:clip}
 /* Màn thêm khoản chi/thu: bàn phím số ghim cứng ở đáy màn hình; chiều cao phím (--kh) do fitPad() tính theo khoảng trống còn lại */
@@ -2009,12 +2010,12 @@ const mY = s => s ? `${s.slice(5, 7)}/${s.slice(0, 4)}` : '';
 const dM = s => s ? `${s.slice(8, 10)}/${s.slice(5, 7)}` : '';
 const dueTxt = d => d < 0 ? `quá hạn ${-d} ngày` : d === 0 ? 'hạn hôm nay' : `còn ${d} ngày`;
 const dueCls = d => d < 0 ? 'late' : d <= 3 ? 'soon' : '';
-const methodTxt = L => L.method === 'free' ? 'Vay người quen, không lịch trả' : L.method === 'flat' ? 'Gốc đều, lãi giảm dần' : 'Gốc + lãi đều mỗi tháng';
+const methodTxt = L => L.method === 'free' ? 'Không lãi · không kỳ hạn' : L.method === 'flat' ? 'Gốc đều, lãi giảm dần' : 'Gốc + lãi đều mỗi tháng';
 const chevSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
 
 function loanCard(L){
   const s = loanState(L);
-  const head = `<div class="lh">${fi(L.method === 'free' ? 'people' : 'bank', 'pic')}<span><b>${esc(L.name)}</b><small>${String(L.rate).replace('.', ',')}%/năm · ${methodTxt(L)}</small></span><button class="chev" data-lopen="${L.id}" aria-label="Xem chi tiết">${chevSvg}</button></div>`;
+  const head = `<div class="lh">${fi(L.method === 'free' ? 'people' : 'bank', 'pic')}<span><b>${esc(L.name)}</b><small>${L.method === 'free' ? `${L.rate ? String(L.rate).replace('.', ',') + '%/năm' : 'Không lãi'} · vay ngày ${dmy(L.firstDue)}` : `${String(L.rate).replace('.', ',')}%/năm · ${methodTxt(L)}`}</small></span><button class="chev" data-lopen="${L.id}" aria-label="Xem chi tiết">${chevSvg}</button></div>`;
   if (L.method === 'free' && !s.done) return `<div class="loan">${head.replace(`${String(L.rate).replace('.', ',')}%/năm · ${methodTxt(L)}`, `${L.rate ? String(L.rate).replace('.', ',') + '%/năm' : 'Không lãi'} · vay ngày ${dmy(L.firstDue)}`)}
     <div class="cd"><div class="ring" style="--p:${s.pct}"><span>${s.pct}%<small>đã trả</small></span></div>
       <div><div class="left" style="font-size:14px">Còn nợ</div><div class="left"><b style="font-size:30px">${hid(shortMoney(s.B))}</b></div><div class="eta">Đã trả ${shortMoney(s.paidPrin)} / ${shortMoney(L.principal)} · không có lịch trả</div></div></div>
@@ -2140,14 +2141,18 @@ const dueSoon = () => S.loans.map(L => [L, loanState(L)]).filter(([, x]) => !x.d
 function openLoanForm(id){
   const L0 = id ? loanById(id) : null;
   const L = L0 ? {...L0} : {name:'', principal:0, rate:0, term:0, firstDue:addDays(today(), 30), method:'annuity', pay:0};
+  let kind = L.method === 'free' ? 'free' : 'bank'; // Loại vay: ngân hàng/trả góp hoặc người thân (không lãi, không kỳ hạn)
   sheet(`<h2>${id ? 'Sửa khoản vay' : 'Thêm khoản vay'}</h2>
+    <div class="segment" id="lKind" style="margin-bottom:12px"><button data-sa="k:bank" class="${kind === 'bank' ? 'on' : ''}">🏦 Ngân hàng, trả góp</button><button data-sa="k:free" class="${kind === 'free' ? 'on' : ''}">🤝 Người thân, bạn bè</button></div>
     <label class="field"><span>Tên khoản vay</span><input class="inp" id="lN" value="${esc(L.name)}" placeholder="vd: Vay mua xe VPBank"></label>
     <div class="grid2"><label class="field"><span>Số tiền vay ban đầu</span><input class="inp money" id="lA" inputmode="numeric" value="${L.principal ? fmt(L.principal) : ''}" placeholder="0"></label>
-    <label class="field"><span>Lãi suất (%/năm)</span><input class="inp" id="lR" inputmode="decimal" value="${L.rate || ''}" placeholder="vd: 9,5"></label></div>
+    <label class="field" id="lRw"><span>Lãi suất (%/năm)</span><input class="inp" id="lR" inputmode="decimal" value="${L.rate || ''}" placeholder="vd: 9,5"></label></div>
     <div class="grid2"><label class="field" id="lTw"><span>Kỳ hạn (tháng)</span><input class="inp" id="lT" inputmode="numeric" value="${L.term || ''}" placeholder="vd: 36"></label>
     <label class="field"><span id="lFl">Ngày trả kỳ đầu tiên</span><input class="inp" type="date" id="lF" value="${L.firstDue}"></label></div>
-    <label class="field"><span>Cách trả</span><select class="inp" id="lM"><option value="annuity"${L.method !== 'flat' ? ' selected' : ''}>Gốc + lãi đều mỗi tháng (trả góp đều)</option><option value="flat"${L.method === 'flat' ? ' selected' : ''}>Gốc đều, lãi giảm dần theo dư nợ</option><option value="free"${L.method === 'free' ? ' selected' : ''}>Vay người quen, không có lịch trả</option></select></label>
+    <label class="field" id="lMw"><span>Cách trả</span><select class="inp" id="lM"><option value="annuity"${L.method !== 'flat' ? ' selected' : ''}>Gốc + lãi đều mỗi tháng (trả góp đều)</option><option value="flat"${L.method === 'flat' ? ' selected' : ''}>Gốc đều, lãi giảm dần theo dư nợ</option></select></label>
     <label class="field" id="lPw"><span>Số tiền trả mỗi tháng (gốc + lãi)</span><input class="inp money" id="lP" inputmode="numeric" value="${L.pay ? fmt(L.pay) : ''}" placeholder="Để trống: app tự tính"></label>
+    ${id ? '' : `<label class="field hidden" id="lCw"><span>Còn nợ hiện tại (nếu đã trả bớt)</span><input class="inp money" id="lC" inputmode="numeric" placeholder="Để trống nếu chưa trả"></label>`}
+    <label class="field" id="lGw"><span>Ghi chú</span><input class="inp" id="lG" value="${esc(L.note || '')}" placeholder="vd: Hẹn trả khi bán đất"></label>
     ${id ? '' : `<div id="lHist"><div class="subh">NẾU KHOẢN VAY ĐÃ TRẢ ĐƯỢC MỘT THỜI GIAN</div>
     <p class="note pretty" style="margin:0 0 8px">Chọn ngày trả kỳ đầu tiên ở trên đúng như hợp đồng, kể cả khi ngày đó đã qua.</p>
     <div class="grid2"><label class="field"><span>Đã trả bao nhiêu kỳ</span><input class="inp" id="lK" inputmode="numeric" placeholder="0"></label>
@@ -2155,12 +2160,16 @@ function openLoanForm(id){
     <div class="insight pretty" id="lPrev" style="margin:2px 0 12px"></div>
     <div class="grid2">${id ? '<button class="btn danger" data-sa="del">Xóa khoản vay</button>' : '<button class="btn" data-sa="close">Hủy</button>'}<button class="btn pri" data-sa="save">Lưu</button></div>`,
   a => {
+    if (a.startsWith('k:')) { kind = a.slice(2); $$('#lKind button').forEach(b => b.classList.toggle('on', b.dataset.sa === a));
+      // Khoản mới: vay người thân mặc định ngày vay là hôm nay; ngân hàng mặc định ngày trả kỳ đầu sau 30 ngày
+      if (!id) { const f = $('#lF'); if (kind === 'free' && f.value === addDays(today(), 30)) f.value = today(); if (kind === 'bank' && f.value === today()) f.value = addDays(today(), 30); }
+      preview(); return; }
     if (a === 'del') { if (confirm(`Xóa khoản vay "${L0.name}"? Các khoản chi trả nợ đã ghi vẫn được giữ.`)) { S.loans = S.loans.filter(x => x.id !== id); save(); closeSheet(); render(); } return; }
     if (a !== 'save') return;
     const v = read(); if (!v) return;
     if (id) { Object.assign(L0, v); }
     else {
-      const k = v.method === 'free' ? 0 : Math.max(0, Math.min(v.term, parseInt($('#lK').value) || 0)); const cb = parseMoney($('#lB').value);
+      const k = v.method === 'free' ? 0 : Math.max(0, Math.min(v.term, parseInt($('#lK').value) || 0)); const cb = parseMoney($(v.method === 'free' ? '#lC' : '#lB').value);
       const hist = simulate(v, v.principal, 1).rows.slice(0, k);
       v.before = {count:k, principal:cb && cb <= v.principal ? v.principal - cb : hist.reduce((s, x) => s + x.principal, 0), interest:hist.reduce((s, x) => s + x.interest, 0)};
       v.id = uid(); v.payments = []; v.created = Date.now(); S.loans.push(v);
@@ -2170,18 +2179,20 @@ function openLoanForm(id){
     toast(s.done || v.method === 'free' ? 'Đã lưu khoản vay' : `Đã lưu. Còn ${s.left} kỳ, xong tháng ${mY(s.end)}`);
   });
   function read(silent){
-    const v = {name:$('#lN').value.trim(), principal:parseMoney($('#lA').value), rate:Math.max(0, parseFloat(String($('#lR').value).replace(',', '.')) || 0), term:parseInt($('#lT').value) || 0, firstDue:$('#lF').value, method:$('#lM').value, pay:parseMoney($('#lP').value)};
-    if (v.method === 'free') { v.term = 0; v.pay = 0; }
-    const err = !v.principal ? 'Nhập số tiền vay' : v.term < 1 && v.method !== 'free' ? 'Nhập kỳ hạn (số tháng)' : !v.firstDue ? 'Chọn ngày trả kỳ đầu' : !v.name && !silent ? 'Nhập tên khoản vay' : '';
+    const v = {name:$('#lN').value.trim(), principal:parseMoney($('#lA').value), rate:Math.max(0, parseFloat(String($('#lR').value).replace(',', '.')) || 0), term:parseInt($('#lT').value) || 0, firstDue:$('#lF').value, method:kind === 'free' ? 'free' : $('#lM').value, pay:parseMoney($('#lP').value), note:$('#lG').value.trim()};
+    if (v.method === 'free') { v.term = 0; v.pay = 0; v.rate = 0; }
+    const err = !v.principal ? 'Nhập số tiền vay' : v.term < 1 && v.method !== 'free' ? 'Nhập kỳ hạn (số tháng)' : !v.firstDue ? (v.method === 'free' ? 'Chọn ngày vay' : 'Chọn ngày trả kỳ đầu') : !v.name && !silent ? 'Nhập tên khoản vay' : '';
     if (err) { if (!silent) toast(err); return null; }
     if (v.method === 'flat') v.pay = 0; else if (v.method !== 'free' && !v.pay) v.pay = planPay(v);
     return v;
   }
   function preview(){
-    const fr = $('#lM').value === 'free';
-    $('#lPw').classList.toggle('hidden', $('#lM').value !== 'annuity'); $('#lTw').classList.toggle('hidden', fr); $('#lFl').textContent = fr ? 'Ngày vay' : 'Ngày trả kỳ đầu tiên'; if ($('#lHist')) $('#lHist').classList.toggle('hidden', fr);
+    const fr = kind === 'free';
+    $('#lPw').classList.toggle('hidden', fr || $('#lM').value !== 'annuity'); $('#lTw').classList.toggle('hidden', fr); $('#lRw').classList.toggle('hidden', fr); $('#lMw').classList.toggle('hidden', fr);
+    $('#lFl').textContent = fr ? 'Ngày vay' : 'Ngày trả kỳ đầu tiên'; if ($('#lHist')) $('#lHist').classList.toggle('hidden', fr); if ($('#lCw')) $('#lCw').classList.toggle('hidden', !fr);
+    $('#lN').placeholder = fr ? 'vd: Vay bố mẹ, Mượn anh chị' : 'vd: Vay mua xe VPBank';
     const v = read(true); const el = $('#lPrev');
-    if (fr) { el.textContent = v ? `Ghi nhận nợ ${fmt(v.principal)} đ. Mỗi lần trả, bấm "Ghi trả nợ" để trừ dần.` : 'Nhập số tiền vay.'; return; }
+    if (fr) { el.textContent = v ? `Không tính lãi, không có lịch trả. Ghi nhận nợ ${fmt(v.principal)} đ; mỗi lần trả bớt, bấm "Ghi trả nợ" để trừ dần.` : 'Vay người thân không cần lãi suất hay kỳ hạn.'; return; }
     if (!v) { el.textContent = 'Nhập số tiền vay, lãi suất và kỳ hạn để xem lịch trả.'; return; }
     const sug = planPay(v);
     const tmp = {...v, payments:id ? L0.payments : [], before:id ? L0.before : null};
@@ -2235,7 +2246,7 @@ function openLoan(id){
   const L = loanById(id); const s = loanState(L);
   const pays = (L.payments || []).slice().sort((a, b) => a.date.localeCompare(b.date));
   sheet(`<h2>${esc(L.name)}</h2>
-    <div class="kv"><span>Số tiền vay</span><b>${money(L.principal)}</b><span>Lãi suất</span><b>${String(L.rate).replace('.', ',')}%/năm</b><span>Cách trả</span><b>${methodTxt(L)}</b>
+    <div class="kv"><span>Số tiền vay</span><b>${money(L.principal)}</b>${L.method === 'free' ? `<span>Loại</span><b>Người thân, không lãi, không kỳ hạn</b><span>Ngày vay</span><b>${dmy(L.firstDue)}</b>` : `<span>Lãi suất</span><b>${String(L.rate).replace('.', ',')}%/năm</b><span>Cách trả</span><b>${methodTxt(L)}</b>`}${L.note ? `<span>Ghi chú</span><b>${esc(L.note)}</b>` : ''}
     ${L.method === 'free' ? `<span>Ngày vay</span><b>${dmy(L.firstDue)}</b>` : `<span>Kỳ hạn</span><b>${L.term} tháng</b>${L.method !== 'flat' ? `<span>Trả mỗi tháng</span><b>${money(L.pay || planPay(L))}</b>` : ''}<span>Ngày trả hằng tháng</span><b>ngày ${Number(L.firstDue.slice(8))}</b>`}
     <span>Dư nợ gốc</span><b>${money(s.B)}</b><span>Lãi đã trả</span><b>${money(s.paidInt)}</b><span>Lãi còn phải trả (ước tính)</span><b>${money(s.interestLeft)}</b>
     <span>Còn lại</span><b>${s.done ? 'Đã tất toán 🎉' : L.method === 'free' ? `còn nợ ${shortMoney(s.B)}` : `${s.left} kỳ · xong tháng ${mY(s.end)}`}</b></div>${L.note ? `<p class="note pretty">${esc(L.note)}</p>` : ''}
