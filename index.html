@@ -680,18 +680,79 @@ nav.tabs .fab svg{width:28px;height:28px}
 .toast button{white-space:nowrap}
 .toast button{pointer-events:auto;border:0;background:transparent;color:var(--yellow);font-weight:900}
 .warn{background:var(--out-soft);color:var(--out);border-radius:12px;padding:9px 12px;font-size:13px;margin:8px 0;font-weight:700}
+/* Mimi */
+.mimi{display:block;width:100%;height:100%;overflow:visible}
+.mimi .mi-bd{animation:miBob 2.8s ease-in-out infinite;transform-origin:32px 58px}
+.mimi .mi-sh{animation:miSh 2.8s ease-in-out infinite;transform-origin:32px 61px}
+.mimi .mi-eye{animation:miBlink 4.2s infinite;transform-origin:32px 37.5px}
+.mimi .mi-arm{animation:miWave 5s ease-in-out infinite;transform-origin:57.5px 42px}
+.mimi .mi-sp{animation:miSp 2.4s ease-in-out infinite;transform-origin:54px 8px}
+.mimi.wave .mi-arm{animation-duration:1.6s}
+.mimi.still .mi-bd,.mimi.still .mi-sh,.mimi.still .mi-arm,.mimi.still .mi-sp{animation:none}
+.mimi.still .mi-sp{display:none}
+@keyframes miBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes miSh{0%,100%{transform:scaleX(1);opacity:1}50%{transform:scaleX(.82);opacity:.6}}
+@keyframes miBlink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+@keyframes miWave{0%,70%,100%{transform:rotate(0)}76%{transform:rotate(-24deg)}82%{transform:rotate(8deg)}88%{transform:rotate(-20deg)}94%{transform:rotate(4deg)}}
+@keyframes miSp{0%,100%{transform:scale(.55) rotate(0);opacity:.35}50%{transform:scale(1) rotate(45deg);opacity:1}}
+#askFab{position:fixed;z-index:9;right:max(14px,calc(50% - 226px));bottom:calc(78px + env(safe-area-inset-bottom));width:62px;height:62px;border:0;border-radius:50%;padding:6px 7px 5px;
+  background:radial-gradient(circle at 50% 35%,#fff,color-mix(in srgb,var(--mint-soft) 70%,#fff));box-shadow:0 0 0 2px color-mix(in srgb,var(--mint) 55%,transparent),0 10px 24px color-mix(in srgb,var(--primary-deep) 30%,transparent);
+  transition:transform .3s cubic-bezier(.3,1.4,.5,1),opacity .3s;-webkit-tap-highlight-color:transparent}
+#askFab:active{transform:scale(.92)}
+#askFab.mini{transform:scale(.78) translate(8px,8px);opacity:.92}
+#askFab .halo{position:absolute;inset:-5px;border-radius:50%;border:2px solid var(--mint);opacity:0;animation:miHalo 3.2s ease-out infinite;pointer-events:none}
+@keyframes miHalo{0%{transform:scale(.9);opacity:.7}70%,100%{transform:scale(1.35);opacity:0}}
+#askFab .fabtip{position:absolute;right:calc(100% + 10px);top:50%;transform:translate(8px,-50%) scale(.9);transform-origin:right center;white-space:nowrap;background:var(--primary-deep);color:var(--on-primary);font-size:13.5px;font-weight:800;padding:9px 13px;border-radius:16px 16px 4px 16px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.35s cubic-bezier(.3,1.4,.5,1)}
+#askFab.tip .fabtip{opacity:1;transform:translate(0,-50%) scale(1)}
+body.focus #askFab{display:none}
 .hl{outline:3px solid var(--primary-deep);outline-offset:3px;border-radius:16px;animation:hlp .65s ease-in-out 4}
 @keyframes hlp{50%{outline-color:transparent}}
-.askhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.askhead h2{margin:0}
-.asklog{display:flex;flex-direction:column;gap:10px;min-height:38dvh;padding-bottom:8px}
-.bub{max-width:90%;padding:10px 13px;border-radius:18px;font-size:15px;line-height:1.45;font-weight:600}
-.bub.me{align-self:flex-end;background:var(--primary-deep);color:var(--on-primary);border-bottom-right-radius:6px}
-.bub.bot{align-self:flex-start;background:var(--card);box-shadow:var(--shadow);border-bottom-left-radius:6px}
-.askacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}.askacts .btn-s{box-shadow:var(--shadow);font-size:13.5px;padding:8px 12px}
-.askq{display:flex;flex-direction:column;align-items:flex-start;gap:5px;margin-top:9px}.askq small{color:var(--muted);font-weight:700;font-size:12px}
-.askq button{border:1.5px solid var(--mint);background:var(--mint-soft);color:var(--primary-ink);border-radius:14px;padding:7px 11px;font-size:13.5px;font-weight:700;text-align:left}
-.askin{position:sticky;bottom:calc(-18px - env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr auto;gap:8px;background:var(--bg);margin:0 -16px calc(-18px - env(safe-area-inset-bottom));padding:8px 16px calc(12px + env(safe-area-inset-bottom))}
-.askin .btn{width:auto;padding:0 18px}
+/* Khung chat */
+.sheet.asksheet{padding:0;height:min(90dvh,820px);display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+.askhead{display:grid;grid-template-columns:48px 1fr 38px 38px;gap:8px;align-items:center;padding:14px 12px 14px 16px;color:#fff;
+  background:linear-gradient(135deg,var(--primary-deep),var(--primary));border-radius:24px 24px 0 0;position:relative}
+.askhead::after{content:"";position:absolute;left:50%;top:6px;width:38px;height:4px;margin-left:-19px;border-radius:4px;background:rgba(255,255,255,.4)}
+.askav{width:30px;height:30px;flex-shrink:0;border-radius:50%;background:#fff;padding:3px 3px 2px;box-shadow:0 2px 6px rgba(19,60,56,.12)}
+.askav.big{width:48px;height:48px;padding:5px 5px 3px;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.askttl b{display:block;font-size:18px;font-weight:900;line-height:1.2}
+.askttl small{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;opacity:.9}
+.askttl small i{width:8px;height:8px;border-radius:50%;background:#7CF0B5;box-shadow:0 0 0 3px rgba(124,240,181,.25)}
+.askx{width:38px;height:38px;border:0;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;display:grid;place-items:center}
+.askx svg{width:19px;height:19px}
+.asklog{flex:1;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:12px;padding:16px 14px 18px;
+  background:radial-gradient(circle at 100% 0,color-mix(in srgb,var(--mint-soft) 80%,transparent),transparent 45%),var(--bg)}
+.asklog .in{animation:miIn .32s cubic-bezier(.2,1.2,.4,1) both}
+@keyframes miIn{from{opacity:0;transform:translateY(10px) scale(.97)}}
+.askhi{text-align:center;padding:4px 2px 2px}
+.askhi .mimi{width:96px;height:96px;margin:4px auto 6px}
+.askhi h3{margin:0 0 4px;font-size:19px;font-weight:900}
+.askhi p{margin:0 auto 14px;max-width:330px;color:var(--muted);font-size:14px;font-weight:600;line-height:1.45}
+.askgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:left}
+.askgrid button{border:0;background:var(--card);box-shadow:var(--shadow);border-radius:16px;padding:10px;font-size:13.5px;font-weight:700;line-height:1.35;color:var(--ink);display:grid;grid-template-columns:34px 1fr;gap:9px;align-items:center;text-align:left;text-wrap:balance}
+.askgrid button span{width:34px;height:34px;border-radius:10px;background:var(--mint-soft);display:grid;place-items:center;font-size:17px}
+.askrow{display:flex;gap:8px;align-items:flex-end;max-width:94%}
+.bub{padding:11px 14px;border-radius:20px;font-size:15px;line-height:1.5;font-weight:600}
+.bub.me{align-self:flex-end;max-width:84%;background:linear-gradient(135deg,var(--primary-deep),var(--primary));color:#fff;border-bottom-right-radius:6px;box-shadow:0 4px 12px color-mix(in srgb,var(--primary-deep) 22%,transparent)}
+.bub.bot{flex:1;min-width:0;background:var(--card);box-shadow:var(--shadow);border-bottom-left-radius:6px;color:var(--ink)}
+.bub.bot b{color:var(--primary-ink)}
+.asktyping .bub{flex:0 0 auto;display:flex;gap:5px;padding:15px 16px}
+.asktyping .bub i{width:7px;height:7px;border-radius:50%;background:var(--mint);animation:miDot 1s infinite}
+.asktyping .bub i:nth-child(2){animation-delay:.15s}.asktyping .bub i:nth-child(3){animation-delay:.3s}
+@keyframes miDot{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-5px);opacity:1}}
+.askacts{display:flex;flex-direction:column;gap:7px;margin-top:11px}
+.askgo{display:flex;align-items:center;justify-content:space-between;gap:10px;border:0;border-radius:14px;padding:11px 13px;font-size:14px;font-weight:800;text-align:left;
+  background:linear-gradient(135deg,var(--primary-deep),var(--primary));color:#fff;box-shadow:0 4px 12px color-mix(in srgb,var(--primary-deep) 25%,transparent)}
+.askgo svg{width:18px;height:18px;flex-shrink:0}
+.askgo.sec{background:var(--mint-soft);color:var(--primary-ink);box-shadow:none}
+.askq{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px;padding-top:10px;border-top:1px dashed var(--line)}
+.askq small{flex-basis:100%;color:var(--muted);font-weight:800;font-size:11.5px;text-transform:uppercase;letter-spacing:.03em}
+.askq button{text-wrap:balance;border:1.5px solid color-mix(in srgb,var(--mint) 60%,transparent);background:transparent;color:var(--primary-ink);border-radius:999px;padding:7px 12px;font-size:13px;font-weight:700;text-align:left;line-height:1.3}
+.askin{display:grid;grid-template-columns:1fr 46px;gap:8px;align-items:center;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--line)}
+.askin input{height:46px;border:1.5px solid var(--line);border-radius:999px;padding:0 18px;background:var(--bg);color:var(--ink);font:inherit;font-size:16px;font-weight:600;outline:none;min-width:0}
+.askin input:focus{border-color:var(--mint);background:var(--card)}
+.asksend{width:46px;height:46px;border:0;border-radius:50%;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--primary-deep),var(--primary));box-shadow:0 4px 12px color-mix(in srgb,var(--primary-deep) 30%,transparent)}
+.asksend svg{width:21px;height:21px}
+@media (prefers-reduced-motion:reduce){.mimi *,#askFab .halo,.asklog .in,.asktyping .bub i{animation:none!important}}
 </style>
 <script>
 /* Ngũ hành – design tokens. Màu Primary/Light/Soft cố định theo bảng; các token phụ được tính để bảo đảm tương phản. */
@@ -750,7 +811,7 @@ nav.tabs .fab svg{width:28px;height:28px}
   <section id="v-home">
     <div class="brandbar">
       <div class="brand"><span class="mk" data-mark="logo"></span><div><b>Nhà Mình</b><small>Quản lý tài chính gia đình</small></div></div>
-      <div class="row"><button class="streak" id="streak" data-go="stat">🔥 0</button><button class="iconbtn" data-ask="1" aria-label="Hỏi trợ lý"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1 1 21 12z"/><path d="M9.6 9.6a2.4 2.4 0 1 1 3.4 2.2c-.6.3-1 .8-1 1.4v.3"/><path d="M12 16.4h.01"/></svg></button><button class="iconbtn" data-go="set" aria-label="Cài đặt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></div>
+      <div class="row"><button class="streak" id="streak" data-go="stat">🔥 0</button><button class="iconbtn" data-go="set" aria-label="Cài đặt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></div>
     </div>
     <div class="hello2"><h2 id="helloName">Chào bạn 👋</h2><p id="helloSub">Cùng quản lý tài chính gia đình tốt hơn mỗi ngày nhé.</p></div>
     <div id="homeBanner"></div>
@@ -763,7 +824,7 @@ nav.tabs .fab svg{width:28px;height:28px}
   <!-- ================= GIAO DỊCH ================= -->
   <section id="v-tx" class="hidden">
     <div class="stickhead">
-    <div class="titlebar"><button class="iconbtn ghost" data-ask="1" aria-label="Hỏi trợ lý"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1 1 21 12z"/><path d="M9.6 9.6a2.4 2.4 0 1 1 3.4 2.2c-.6.3-1 .8-1 1.4v.3"/><path d="M12 16.4h.01"/></svg></button><h1>Thu chi</h1><button class="iconbtn ghost" data-go="add" aria-label="Thêm khoản chi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
+    <div class="titlebar"><span></span><h1>Thu chi</h1><button class="iconbtn ghost" data-go="add" aria-label="Thêm khoản chi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
     <div class="mpick"><button data-mv="-1" aria-label="Tháng trước"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button><b class="mlabel"></b><button data-mv="1" aria-label="Tháng sau"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button></div>
     <div class="segment" id="txSeg" style="grid-template-columns:repeat(3,1fr)"><button data-seg="ov" class="on">Tổng quan</button><button data-seg="ls">Danh sách</button><button data-seg="st">Thu & quỹ</button></div>
     </div>
@@ -827,7 +888,7 @@ nav.tabs .fab svg{width:28px;height:28px}
   <!-- ================= MỤC TIÊU ================= -->
   <section id="v-goal" class="hidden">
     <div class="stickhead">
-    <div class="titlebar"><button class="iconbtn ghost" data-ask="1" aria-label="Hỏi trợ lý"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1 1 21 12z"/><path d="M9.6 9.6a2.4 2.4 0 1 1 3.4 2.2c-.6.3-1 .8-1 1.4v.3"/><path d="M12 16.4h.01"/></svg></button><h1 id="goalTitle">Mục tiêu năm <span id="ylabel"></span></h1><button class="iconbtn ghost" id="goalAdd" aria-label="Tạo mục tiêu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
+    <div class="titlebar"><span></span><h1 id="goalTitle">Mục tiêu năm <span id="ylabel"></span></h1><button class="iconbtn ghost" id="goalAdd" aria-label="Tạo mục tiêu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
     <div class="tabs5" id="goalSeg">
       <button class="on" data-gseg="nw"><span class="ti" data-fi="wallet"></span>Tổng</button>
       <button data-gseg="save"><span class="ti" data-fi="piggy"></span>Tiết kiệm</button>
@@ -862,7 +923,7 @@ nav.tabs .fab svg{width:28px;height:28px}
   <!-- ================= KẾ HOẠCH ================= -->
   <section id="v-plan" class="hidden">
     <div class="stickhead">
-    <div class="titlebar"><button class="iconbtn ghost" data-ask="1" aria-label="Hỏi trợ lý"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1 1 21 12z"/><path d="M9.6 9.6a2.4 2.4 0 1 1 3.4 2.2c-.6.3-1 .8-1 1.4v.3"/><path d="M12 16.4h.01"/></svg></button><h1 id="planTitle">Ngân sách tháng</h1><button class="iconbtn ghost" id="planAdd" aria-label="Thêm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
+    <div class="titlebar"><span></span><h1 id="planTitle">Ngân sách tháng</h1><button class="iconbtn ghost" id="planAdd" aria-label="Thêm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
     <div class="segment" id="planSeg" style="grid-template-columns:repeat(3,1fr)"><button class="on" data-pseg="budget">Ngân sách</button><button data-pseg="accum">Tích lũy</button><button data-pseg="year">Mục tiêu năm</button></div>
     </div>
     <div id="budgetPane">
@@ -883,7 +944,7 @@ nav.tabs .fab svg{width:28px;height:28px}
   <!-- ================= CÀI ĐẶT ================= -->
   <section id="v-set" class="hidden">
     <div class="titlebar"><button class="iconbtn ghost" data-go="back" aria-label="Quay lại"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg></button><h1>Cài đặt</h1><span></span></div>
-    <button class="newgoal" data-ask="1" style="margin-bottom:12px"><span class="pl">💬</span><span><b>Hỏi trợ lý Nhà Mình</b><small>Cần làm gì, trợ lý chỉ ngay chỗ bấm</small></span></button>
+    <button class="newgoal" data-ask="1" style="margin-bottom:12px"><span class="pl" id="setMimi" style="background:#fff;padding:4px"></span><span><b>Hỏi trợ lý Mimi</b><small>Cần làm gì, Mimi chỉ ngay chỗ bấm</small></span></button>
     <div class="card" id="elementCard">
       <h3>Giao diện · Màu sắc theo mệnh</h3>
       <div class="elgrid" id="elGrid"></div>
@@ -3635,36 +3696,85 @@ function askMatch(text){
   return ASK.map(x => { let s = 0; x.k.forEach(p => { if (has(p)) s += askW(p); }); if (s) (x.no || []).forEach(p => { if (has(p)) s -= askW(p) * .9; }); return {x, s}; })
     .filter(r => r.s >= 1).sort((a, b) => b.s - a.s);
 }
-let askLog = [];
-const askHi = () => ({who:'bot', html:`Chào ${esc(S.settings.owner || 'bạn')} 👋 Bạn cần làm gì trong Nhà Mình? Gõ câu hỏi, có dấu hay không dấu đều được, hoặc chọn một câu bên dưới.`, chips:ASK_POP});
+// Mimi: nhân vật trợ lý hình ngôi nhà nhỏ, màu theo giao diện mệnh đang chọn
+const ASK_NAME = 'Mimi';
+const ASK_SHORT = {loan:'Tạo khoản vay ở đâu?', lendold:'Thu nợ cũ từ trước khi dùng app', income:'Ghi lương, khoản thu', split:'Chia lương vào các quỹ', left:'Tháng này còn tiêu được bao nhiêu?', backup:'Sao lưu dữ liệu'};
+const ASK_IC = {loan:'🏦', loanfree:'👪', lendold:'🤝', lend:'🤝', income:'💰', split:'💸', left:'📊', backup:'💾', add:'🧾', card:'💳', fund:'🗂️', saving:'🐷', gold:'🪙', excel:'📗'};
+let mascotN = 0;
+function mascot(cls){ const g = 'mg' + (++mascotN);
+  return `<svg class="mimi ${cls || ''}" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="${g}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--primary)"/><stop offset="1" stop-color="var(--primary-deep)"/></linearGradient></defs>
+    <ellipse class="mi-sh" cx="32" cy="61" rx="17" ry="2.6" fill="rgba(19,60,56,.16)"/>
+    <g class="mi-bd"><rect x="41" y="9" width="7" height="13" rx="2" fill="var(--primary-deep)"/>
+      <path d="M32 5.5c1 0 2 .4 2.8 1l21 17.6c1.5 1.3 2.2 2.9 2.2 4.8V51a7 7 0 0 1-7 7H13a7 7 0 0 1-7-7V28.9c0-1.9.7-3.5 2.2-4.8L29.2 6.5c.8-.6 1.8-1 2.8-1z" fill="url(#${g})"/>
+      <path d="M14 23.5L32 9" stroke="#fff" stroke-opacity=".35" stroke-width="2.4" stroke-linecap="round"/>
+      <rect x="13" y="27" width="38" height="25" rx="12.5" fill="#FFF9EF"/>
+      <g class="mi-eye"><ellipse cx="25" cy="37.5" rx="3.1" ry="3.8" fill="#1E2B2A"/><ellipse cx="39" cy="37.5" rx="3.1" ry="3.8" fill="#1E2B2A"/><circle cx="26.1" cy="36.2" r="1.1" fill="#fff"/><circle cx="40.1" cy="36.2" r="1.1" fill="#fff"/></g>
+      <ellipse cx="19.5" cy="43.5" rx="3.2" ry="2" fill="#FF8A95" opacity=".55"/><ellipse cx="44.5" cy="43.5" rx="3.2" ry="2" fill="#FF8A95" opacity=".55"/>
+      <path d="M28.2 43.2q3.8 4 7.6 0" fill="none" stroke="#1E2B2A" stroke-width="2.1" stroke-linecap="round"/>
+      <path d="M6.5 45q-3.5 1.5-3.6 5" stroke="var(--primary-deep)" stroke-width="3.4" stroke-linecap="round" fill="none"/><g class="mi-arm"><path d="M57.5 42q3.8-2.5 4.3-7.5" stroke="var(--primary-deep)" stroke-width="3.4" stroke-linecap="round" fill="none"/><ellipse cx="61.9" cy="33.4" rx="2.6" ry="2.9" fill="var(--primary)"/></g></g>
+    <path class="mi-sp" d="M54 3l1.3 3.4L58.7 8l-3.4 1.3L54 12.7l-1.3-3.4L49.3 8l3.4-1.6z" fill="var(--yellow)"/></svg>`; }
+const askHi = () => ({who:'hi'});
+let askLog = [], askShown = 0;
 function askAnswer(text, id){
   askLog.push({who:'me', html:esc(text)});
   const hits = id ? [{x:askById(id), s:9}] : askMatch(text);
-  if (!hits.length) { askLog.push({who:'bot', html:'Mình chưa hiểu câu này. Bạn thử hỏi ngắn hơn, ví dụ “tạo khoản vay”, “ghi lương”, “sao lưu”, hoặc chọn một chủ đề:', chips:['add', 'loan', 'lend', 'card', 'fund', 'saving', 'gold', 'excel']}); return; }
+  if (!hits.length) return {who:'bot', html:'Mimi chưa hiểu câu này 😅 Bạn thử hỏi ngắn hơn, ví dụ “tạo khoản vay”, “ghi lương”, “sao lưu”, hoặc chọn một chủ đề:', chips:['add', 'loan', 'lend', 'card', 'fund', 'saving', 'gold', 'excel']};
   const top = hits[0].x, alt = hits.slice(1).filter(r => r.s >= hits[0].s * .6).map(r => r.x.id);
   const chips = [...new Set(alt.concat(top.rel || []))].filter(c => c !== top.id).slice(0, 3);
-  askLog.push({who:'bot', html:typeof top.a === 'function' ? top.a() : top.a, acts:top.id, chips, alt:alt.length > 0});
+  return {who:'bot', html:typeof top.a === 'function' ? top.a() : top.a, acts:top.id, chips, alt:alt.length > 0};
 }
-function renderAsk(){
-  $('#askLog').innerHTML = askLog.map(m => m.who === 'me' ? `<div class="bub me">${m.html}</div>` : `<div class="bub bot"><div class="pretty">${m.html}</div>
-    ${m.acts ? `<div class="askacts">${askById(m.acts).acts.map((a, i) => `<button class="btn-s ${i ? '' : 'pri'}" data-sa="do:${m.acts}:${i}">${a.t} →</button>`).join('')}</div>` : ''}
-    ${m.chips && m.chips.length ? `<div class="askq">${m.alt ? '<small>Có thể bạn muốn hỏi:</small>' : m.acts ? '<small>Câu liên quan:</small>' : ''}${m.chips.map(c => `<button data-sa="q:${c}">${askById(c).q}</button>`).join('')}</div>` : ''}</div>`).join('');
-  const sh = $('#layer .sheet'); if (sh) sh.scrollTop = sh.scrollHeight;
+const ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+function askMsg(m){
+  if (m.who === 'hi') return `<div class="askhi">${mascot('wave')}<h3>Chào ${esc(S.settings.owner || 'bạn')}, mình là ${ASK_NAME} 👋</h3><p class="pretty">Bạn cần làm gì trong Nhà Mình? Hỏi mình bằng lời của bạn, có dấu hay không dấu đều được. Mình chỉ cách và đưa bạn tới đúng chỗ.</p>
+    <div class="askgrid">${ASK_POP.map(c => `<button data-sa="q:${c}"><span>${ASK_IC[c] || '💡'}</span>${ASK_SHORT[c] || askById(c).q}</button>`).join('')}</div></div>`;
+  if (m.who === 'me') return `<div class="bub me">${m.html}</div>`;
+  if (m.who === 'typing') return `<div class="askrow asktyping"><span class="askav">${mascot('still')}</span><div class="bub bot"><i></i><i></i><i></i></div></div>`;
+  return `<div class="askrow"><span class="askav">${mascot('still')}</span><div class="bub bot"><div class="pretty">${m.html}</div>
+    ${m.acts && askById(m.acts).acts.length ? `<div class="askacts">${askById(m.acts).acts.map((a, i) => `<button class="askgo${i ? ' sec' : ''}" data-sa="do:${m.acts}:${i}"><span>${a.t}</span>${ARROW}</button>`).join('')}</div>` : ''}
+    ${m.chips && m.chips.length ? `<div class="askq"><small>${m.alt ? 'Có thể bạn muốn hỏi' : m.acts ? 'Bạn có thể hỏi tiếp' : 'Chủ đề'}</small>${m.chips.map(c => `<button data-sa="q:${c}">${m.acts ? '' : (ASK_IC[c] || '💡') + ' '}${askById(c).q}</button>`).join('')}</div>` : ''}</div></div>`;
+}
+function renderAsk(all){
+  const log = $('#askLog'); if (!log) return;
+  if (all) { log.innerHTML = askLog.map(askMsg).join(''); askShown = askLog.length; }
+  else { while (askShown < askLog.length) log.insertAdjacentHTML('beforeend', askMsg(askLog[askShown++]).replace(/^<div class="/, '<div class="in ')); }
+  log.scrollTo({top:log.scrollHeight, behavior:all ? 'auto' : 'smooth'});
+}
+function askSend(text, id){
+  const log = $('#askLog'); if (!log) return;
+  const ans = askAnswer(text, id); renderAsk();
+  log.insertAdjacentHTML('beforeend', askMsg({who:'typing'})); log.scrollTo({top:log.scrollHeight, behavior:'smooth'});
+  setTimeout(() => { log.querySelector('.asktyping')?.remove(); askLog.push(ans); renderAsk(); }, navigator.webdriver ? 60 : 550);
 }
 function openAsk(){
   if (!askLog.length) askLog.push(askHi());
-  sheet(`<div class="askhead"><h2>💬 Trợ lý Nhà Mình</h2><button class="btn-s" data-sa="clear">Làm mới</button></div>
+  sheet(`<div class="askhead"><span class="askav big">${mascot()}</span><div class="askttl"><b>${ASK_NAME}</b><small><i></i>Luôn sẵn sàng giúp bạn</small></div>
+      <button class="askx" data-sa="clear" aria-label="Làm mới cuộc trò chuyện"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
+      <button class="askx" data-sa="close" aria-label="Đóng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <div id="askLog" class="asklog"></div>
-    <form id="askForm" class="askin"><input class="inp" id="askQ" placeholder="vd: tạo khoản vay ở đâu?" enterkeyhint="send" autocomplete="off"><button class="btn pri" aria-label="Gửi">Gửi</button></form>`,
+    <form id="askForm" class="askin"><input id="askQ" placeholder="Hỏi ${ASK_NAME} điều bạn cần…" enterkeyhint="send" autocomplete="off"><button class="asksend" aria-label="Gửi">${ARROW}</button></form>`,
   a => {
-    if (a === 'clear') { askLog = [askHi()]; renderAsk(); return; }
-    if (a.startsWith('q:')) { const x = askById(a.slice(2)); askAnswer(x.q, x.id); renderAsk(); return; }
+    if (a === 'clear') { askLog = [askHi()]; renderAsk(true); return; }
+    if (a.startsWith('q:')) { const x = askById(a.slice(2)); askSend(x.q, x.id); return; }
     if (a.startsWith('do:')) { const [, id, i] = a.split(':'); closeSheet(); askById(id).acts[Number(i)].f(); }
   });
-  renderAsk();
-  $('#askForm').onsubmit = e => { e.preventDefault(); const v = $('#askQ').value.trim(); if (!v) return; $('#askQ').value = ''; askAnswer(v); renderAsk(); };
+  $('#layer .sheet').classList.add('asksheet');
+  renderAsk(true);
+  $('#askForm').onsubmit = e => { e.preventDefault(); const v = $('#askQ').value.trim(); if (!v) return; $('#askQ').value = ''; askSend(v); };
 }
+{ const m = $('#setMimi'); if (m) m.innerHTML = mascot('still'); }
 document.addEventListener('click', e => { if (e.target.closest('[data-ask]')) { e.preventDefault(); openAsk(); } });
+// Nút Mimi nổi ở góc phải, trên thanh điều hướng; thu nhỏ khi cuộn xuống, ẩn ở màn ghi khoản chi
+(() => {
+  const fab = document.createElement('button'); fab.id = 'askFab'; fab.dataset.ask = '1'; fab.setAttribute('aria-label', `Hỏi trợ lý ${ASK_NAME}`);
+  fab.innerHTML = `<span class="halo"></span>${mascot()}<span class="fabtip"></span>`; document.body.appendChild(fab);
+  let lastY = 0; addEventListener('scroll', () => { const y = scrollY; fab.classList.toggle('mini', y > 60 && y > lastY); lastY = y; }, {passive:true});
+  const TIPS = ['Cần gì cứ hỏi Mimi nhé!', 'Tạo khoản vay ở đâu? Hỏi Mimi!', 'Mimi chỉ đường cho bạn nè 👋', 'Quên cách làm? Có Mimi đây!'];
+  setTimeout(() => { let seen = ''; try { seen = localStorage.getItem('nm.asktip') || ''; } catch (e) {}
+    if (seen === today() || view !== 'home' || navigator.webdriver) return;
+    try { localStorage.setItem('nm.asktip', today()); } catch (e) {}
+    fab.querySelector('.fabtip').textContent = TIPS[Math.floor(Math.random() * TIPS.length)];
+    fab.classList.add('tip'); setTimeout(() => fab.classList.remove('tip'), 5200); }, 2200);
+})();
 
 window.__app = {ask:askMatch, classify, exportExcel, importExcel, loanState, simulate, planPay, goldCalc, cardState, lendState, spendable, get S(){ return S; }};
 const h = location.hash.slice(1);
