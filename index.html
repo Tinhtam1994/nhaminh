@@ -709,6 +709,7 @@ body.focus #askFab{display:none}
 @keyframes hlp{50%{outline-color:transparent}}
 /* Khung chat */
 .sheet.asksheet{padding:0;height:min(90dvh,820px);display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+.sheet.asksheet.kb{max-height:none;border-radius:0}.asksheet.kb .askhead{border-radius:0;padding-top:10px;padding-bottom:10px}.asksheet.kb .askhead::after{display:none}.asksheet.kb .askin{padding-bottom:8px}
 .askhead{display:grid;grid-template-columns:48px 1fr 38px 38px;gap:8px;align-items:center;padding:14px 12px 14px 16px;color:#fff;
   background:linear-gradient(135deg,var(--primary-deep),var(--primary));border-radius:24px 24px 0 0;position:relative}
 .askhead::after{content:"";position:absolute;left:50%;top:6px;width:38px;height:4px;margin-left:-19px;border-radius:4px;background:rgba(255,255,255,.4)}
@@ -725,7 +726,7 @@ body.focus #askFab{display:none}
 @keyframes miIn{from{opacity:0;transform:translateY(10px) scale(.97)}}
 .askhi{text-align:center;padding:4px 2px 2px}
 .askhi .mimi{width:96px;height:96px;margin:4px auto 6px}
-.askhi h3{margin:0 0 4px;font-size:19px;font-weight:900}
+.askhi h3{text-wrap:balance;margin:0 0 4px;font-size:19px;font-weight:900}
 .askhi p{margin:0 auto 14px;max-width:330px;color:var(--muted);font-size:14px;font-weight:600;line-height:1.45}
 .askgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:left}
 .askgrid button{border:0;background:var(--card);box-shadow:var(--shadow);border-radius:16px;padding:10px;font-size:13.5px;font-weight:700;line-height:1.35;color:var(--ink);display:grid;grid-template-columns:34px 1fr;gap:9px;align-items:center;text-align:left;text-wrap:balance}
@@ -944,7 +945,7 @@ body.focus #askFab{display:none}
   <!-- ================= CÀI ĐẶT ================= -->
   <section id="v-set" class="hidden">
     <div class="titlebar"><button class="iconbtn ghost" data-go="back" aria-label="Quay lại"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg></button><h1>Cài đặt</h1><span></span></div>
-    <button class="newgoal" data-ask="1" style="margin-bottom:12px"><span class="pl" id="setMimi" style="background:#fff;padding:4px"></span><span><b>Hỏi trợ lý Mimi</b><small>Cần làm gì, Mimi chỉ ngay chỗ bấm</small></span></button>
+    <button class="newgoal" data-ask="1" style="margin-bottom:12px"><span class="pl" id="setMimi" style="background:#fff;padding:4px"></span><span><b>Hỏi Bé Nhà Mimi</b><small>Cần làm gì, Mimi chỉ ngay chỗ bấm</small></span></button>
     <div class="card" id="elementCard">
       <h3>Giao diện · Màu sắc theo mệnh</h3>
       <div class="elgrid" id="elGrid"></div>
@@ -3697,7 +3698,7 @@ function askMatch(text){
     .filter(r => r.s >= 1).sort((a, b) => b.s - a.s);
 }
 // Mimi: nhân vật trợ lý hình ngôi nhà nhỏ, màu theo giao diện mệnh đang chọn
-const ASK_NAME = 'Mimi';
+const ASK_NAME = 'Bé Nhà Mimi', ASK_NICK = 'Mimi'; // tên đầy đủ hiện ở tiêu đề, lời chào; tên gọi tắt dùng ở chỗ hẹp
 const ASK_SHORT = {loan:'Tạo khoản vay ở đâu?', lendold:'Thu nợ cũ từ trước khi dùng app', income:'Ghi lương, khoản thu', split:'Chia lương vào các quỹ', left:'Tháng này còn tiêu được bao nhiêu?', backup:'Sao lưu dữ liệu'};
 const ASK_IC = {loan:'🏦', loanfree:'👪', lendold:'🤝', lend:'🤝', income:'💰', split:'💸', left:'📊', backup:'💾', add:'🧾', card:'💳', fund:'🗂️', saving:'🐷', gold:'🪙', excel:'📗'};
 let mascotN = 0;
@@ -3751,24 +3752,37 @@ function openAsk(){
       <button class="askx" data-sa="clear" aria-label="Làm mới cuộc trò chuyện"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
       <button class="askx" data-sa="close" aria-label="Đóng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <div id="askLog" class="asklog"></div>
-    <form id="askForm" class="askin"><input id="askQ" placeholder="Hỏi ${ASK_NAME} điều bạn cần…" enterkeyhint="send" autocomplete="off"><button class="asksend" aria-label="Gửi">${ARROW}</button></form>`,
+    <form id="askForm" class="askin"><input id="askQ" placeholder="Hỏi ${ASK_NICK} điều bạn cần…" enterkeyhint="send" autocomplete="off"><button class="asksend" aria-label="Gửi">${ARROW}</button></form>`,
   a => {
     if (a === 'clear') { askLog = [askHi()]; renderAsk(true); return; }
     if (a.startsWith('q:')) { const x = askById(a.slice(2)); askSend(x.q, x.id); return; }
     if (a.startsWith('do:')) { const [, id, i] = a.split(':'); closeSheet(); askById(id).acts[Number(i)].f(); }
   });
   $('#layer .sheet').classList.add('asksheet');
-  renderAsk(true);
+  renderAsk(true); askFitKb();
   $('#askForm').onsubmit = e => { e.preventDefault(); const v = $('#askQ').value.trim(); if (!v) return; $('#askQ').value = ''; askSend(v); };
 }
 { const m = $('#setMimi'); if (m) m.innerHTML = mascot('still'); }
+// Bàn phím iPhone mở: khung chat bám đúng vùng còn nhìn thấy (trên bàn phím), đầu khung không bị đẩy khỏi màn hình
+function askFitKb(){
+  const vv = window.visualViewport; if (!vv || askFitKb.on) return; askFitKb.on = true;
+  const fit = () => {
+    const sh = $('#layer .asksheet'), ov = sh && sh.parentElement;
+    if (!sh) { vv.removeEventListener('resize', fit); vv.removeEventListener('scroll', fit); askFitKb.on = false; return; }
+    const kb = vv.height < innerHeight * .8; sh.classList.toggle('kb', kb);
+    ov.style.top = vv.offsetTop + 'px'; ov.style.height = vv.height + 'px'; ov.style.bottom = 'auto';
+    sh.style.height = kb ? vv.height + 'px' : '';
+    if (kb) { const log = $('#askLog'); if (log) log.scrollTop = log.scrollHeight; }
+  };
+  vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); fit();
+}
 document.addEventListener('click', e => { if (e.target.closest('[data-ask]')) { e.preventDefault(); openAsk(); } });
 // Nút Mimi nổi ở góc phải, trên thanh điều hướng; thu nhỏ khi cuộn xuống, ẩn ở màn ghi khoản chi
 (() => {
   const fab = document.createElement('button'); fab.id = 'askFab'; fab.dataset.ask = '1'; fab.setAttribute('aria-label', `Hỏi trợ lý ${ASK_NAME}`);
   fab.innerHTML = `<span class="halo"></span>${mascot()}<span class="fabtip"></span>`; document.body.appendChild(fab);
   let lastY = 0; addEventListener('scroll', () => { const y = scrollY; fab.classList.toggle('mini', y > 60 && y > lastY); lastY = y; }, {passive:true});
-  const TIPS = ['Cần gì cứ hỏi Mimi nhé!', 'Tạo khoản vay ở đâu? Hỏi Mimi!', 'Mimi chỉ đường cho bạn nè 👋', 'Quên cách làm? Có Mimi đây!'];
+  const TIPS = ['Cần gì cứ hỏi Bé Nhà Mimi nhé!', 'Tạo khoản vay ở đâu? Hỏi Mimi!', 'Bé Nhà Mimi chỉ đường nè 👋', 'Quên cách làm? Có Mimi đây!'];
   setTimeout(() => { let seen = ''; try { seen = localStorage.getItem('nm.asktip') || ''; } catch (e) {}
     if (seen === today() || view !== 'home' || navigator.webdriver) return;
     try { localStorage.setItem('nm.asktip', today()); } catch (e) {}
