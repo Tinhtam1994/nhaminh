@@ -146,7 +146,16 @@ svg{display:block}
 
 /* ---------- Giao dịch / Thống kê ---------- */
 .mpick{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 0 12px}
-.mpick b{font-size:16px;font-weight:800;min-width:132px;text-align:center}
+.mpick b{font-size:16px;font-weight:800;min-width:132px;text-align:center;cursor:pointer;padding:5px 12px;border-radius:999px}
+.mpick b.mlabel::after{content:" ▾";font-size:12px;color:var(--muted)}
+.mpick b.mlabel:active{background:var(--mint-soft)}
+.mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:14px}
+.mgrid>*{border-radius:14px;padding:9px 6px;text-align:center;font-size:13.5px;font-weight:700;min-width:0}
+.mgrid span{color:var(--muted);opacity:.45;border:1.5px dashed var(--line)}
+.mgrid button{border:1.5px solid var(--mint);background:var(--card);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:2px;color:var(--ink)}
+.mgrid button small{font-size:11px;font-weight:700;color:var(--muted)}
+.mgrid button.now{border-color:var(--primary-deep)}
+.mgrid button.on{background:var(--primary-deep);color:var(--on-primary);border-color:var(--primary-deep)}.mgrid button.on small{color:inherit;opacity:.85}
 .mpick button{width:32px;height:32px;border-radius:50%;border:0;background:var(--card);box-shadow:var(--shadow);display:grid;place-items:center}
 .mpick button svg{width:16px;height:16px}
 /* Màn chào khi mở app */
@@ -2954,6 +2963,20 @@ document.addEventListener('input', e => {
   try { const p = Math.max(0, e.target.value.length - pos); e.target.setSelectionRange(p, p); } catch (er) {}
 });
 $$('[data-mv]').forEach(b => b.onclick = () => { curM = shiftM(curM, Number(b.dataset.mv)); render(); });
+// Bấm vào chữ tháng: chọn nhanh tháng có dữ liệu, nhảy qua các năm không phải bấm mũi tên nhiều lần
+function openMonthPick(){
+  const now = today().slice(0, 7), ms = {};
+  S.tx.forEach(t => { const m = t.date.slice(0, 7); ms[m] = ms[m] || {n:0, s:0}; ms[m].n++; ms[m].s += t.amount; });
+  S.inc.forEach(i => { const m = i.date.slice(0, 7); ms[m] = ms[m] || {n:0, s:0}; });
+  ms[now] = ms[now] || {n:0, s:0};
+  const years = [...new Set(Object.keys(ms).map(m => m.slice(0, 4)))].sort().reverse();
+  sheet(`<h2>Chọn tháng</h2>${curM !== now ? '<button class="btn pri" data-sa="m:' + now + '" style="margin-bottom:12px">Về tháng này</button>' : ''}
+    ${years.map(y => `<div class="subh">NĂM ${y}</div><div class="mgrid">${Array.from({length:12}, (_, i) => `${y}-${pad(i + 1)}`).map(m => ms[m]
+      ? `<button class="${m === curM ? 'on' : ''}${m === now ? ' now' : ''}" data-sa="m:${m}"><b>Tháng ${Number(m.slice(5))}</b><small>${ms[m].n ? `${ms[m].n} khoản · ${shortMoney(ms[m].s)}` : 'chưa có chi'}</small></button>`
+      : `<span>Tháng ${Number(m.slice(5))}</span>`).join('')}</div>`).join('')}`,
+  a => { if (a.startsWith('m:')) { curM = a.slice(2); closeSheet(); render(); } });
+}
+$$('.mlabel').forEach(b => { b.setAttribute('role', 'button'); b.tabIndex = 0; b.onclick = openMonthPick; });
 $$('[data-yv]').forEach(b => b.onclick = () => { curY += Number(b.dataset.yv); render(); });
 $('#txSeg').onclick = e => { const b = e.target.closest('[data-seg]'); if (b) { txSeg = b.dataset.seg; setHash(); renderTx(); } };
 $('#lvFilter').onclick = e => { const b = e.target.closest('[data-lvf]'); if (b) { lvFilter = b.dataset.lvf; renderTx(); } };
@@ -3658,6 +3681,9 @@ const ASK = [
       (S.cards || []).forEach(c => { const x = cardState(c); if (x.stmt) r.push(`thẻ ${esc(c.name)} ${shortMoney(x.stmt)} hạn ${dM(x.due)}`); });
       return r.length ? `Sắp tới cần trả: ${r.slice(0, 4).join('; ')}.` : 'Hiện chưa có khoản vay hay sao kê thẻ nào cần trả.'; },
     acts:[{t:'Mở Vay nợ', f:() => go('loan')}], rel:['loanpay', 'cardpay']},
+  {id:'month', q:'Xem chi tiêu tháng cũ, năm trước ở đâu?', k:['thang cu', 'thang truoc', 'nam truoc', 'nam ngoai', 'nam 2024', 'nam 2025', 'chon thang', 'doi thang', 'xem thang', 'chi co thang', 'mat thang', 'khong thay thang', 'du lieu cu'],
+    a:'Vào <b>Giao dịch</b>, bấm vào <b>chữ tháng</b> ở giữa hai mũi tên (vd: “Tháng 10, 2024 ▾”). App hiện các tháng có dữ liệu theo từng năm, kèm số khoản và tổng chi. Bấm vào tháng muốn xem. Muốn quay lại, bấm <b>Về tháng này</b>.',
+    acts:[{t:'Mở chọn tháng', f:() => { txSeg = 'ls'; go('tx'); openMonthPick(); }}], rel:['stat', 'import']},
   {id:'stat', q:'Xem thống kê chi tiêu theo tháng?', k:['thong ke', 'bao cao', 'bieu do', 'tong ket', 'so sanh thang', 'chi bao nhieu', 'tong chi'],
     a:'Vào <b>Giao dịch → Tổng quan</b> để xem tổng chi theo danh mục và mức độ của từng tháng (bấm mũi tên để đổi tháng). Mục <b>Thu & quỹ</b> có chuỗi ngày ghi chép và xu hướng các tháng.',
     acts:[{t:'Mở thống kê', f:() => { txSeg = 'ov'; go('tx'); }}], rel:['excel', 'left']},
