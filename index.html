@@ -139,6 +139,16 @@ svg{display:block}
 .mpick b{font-size:16px;font-weight:800;min-width:132px;text-align:center}
 .mpick button{width:32px;height:32px;border-radius:50%;border:0;background:var(--card);box-shadow:var(--shadow);display:grid;place-items:center}
 .mpick button svg{width:16px;height:16px}
+/* Tài sản khác: thẻ tổng + thẻ từng tài sản nổi bật */
+.lsum.asum{display:block;color:#fff;background:linear-gradient(140deg,#9A3412,#7C2D12)}
+.lsum.asum .big2{font-size:30px;font-weight:900;margin:2px 0 4px}
+.lsum.asum .sub{font-size:13px;opacity:.95;margin-top:2px;text-wrap:pretty}
+.acard{display:grid;grid-template-columns:48px 1fr auto;gap:12px;align-items:center;width:100%;border:0;background:var(--card);border-radius:18px;box-shadow:var(--shadow);padding:14px;margin-bottom:10px;text-align:left;color:var(--ink)}
+.acard .cic{width:48px;height:48px}
+.acard .n{display:block;font-size:16px;font-weight:900;line-height:1.25}
+.acard .s{display:block;font-size:12.5px;color:var(--muted);font-weight:700;margin-top:2px}
+.acard .v{font-size:19px;font-weight:900;text-align:right;white-space:nowrap}
+.acard .v small{display:block;font-size:12px;font-weight:800;margin-top:2px}
 /* Tiêu đề + hàng tab đứng yên khi cuộn */
 .stickhead{position:sticky;top:0;z-index:5;background:var(--bg);margin:0 -16px;padding:0 16px 2px}
 .stickhead.scrolled{box-shadow:0 6px 12px -10px rgba(0,0,0,.25)}
@@ -2267,17 +2277,35 @@ const perU = (v, m) => `${shortMoney(v * METAL[m].unit)}/${METAL[m].unitName}`;
 const pl = (v, big) => `<b class="num" style="color:${v >= 0 ? 'var(--in)' : 'var(--out)'}${big ? ';font-size:20px' : ''}">${v >= 0 ? '+' : '−'}${shortMoney(Math.abs(v))}</b>`;
 const pct1 = (a, b) => b ? `${a >= 0 ? '+' : '−'}${Math.abs(a / b * 100).toFixed(1).replace('.', ',')}%` : '';
 // Giá vốn bình quân gia quyền theo từng loại: mua thì cộng vốn, bán thì trừ vốn theo giá TB tại thời điểm bán
+// Giá hôm nay theo nơi: giá riêng của nơi đó, nếu chưa có thì dùng giá chung của loại (nếu có)
+const placeKey = p => (p || '').trim();
+const effPrice = (kind, place) => { const g = S.goldPrice[kind]; if (!g) return 0; const pp = g.places && g.places[placeKey(place)]; return pp && pp.price ? pp.price : (g.price || 0); };
+const effDate = (kind, place) => { const g = S.goldPrice[kind]; if (!g) return ''; const pp = g.places && g.places[placeKey(place)]; return pp && pp.price ? pp.date : (g.price ? g.date : ''); };
 function goldCalc(exceptId){
   const kinds = {}; const rows = [];
   const list = S.gold.filter(g => g.id !== exceptId).sort((a, b) => a.date.localeCompare(b.date) || (a.created || 0) - (b.created || 0));
   for (const g of list) {
-    const k = kinds[g.kind] || (kinds[g.kind] = {kind:g.kind, metal:metalOf(g), qty:0, cost:0, realized:0, bought:0, sold:0});
-    if (g.type === 'buy') { const c = g.qty * g.price + (g.fee || 0); k.qty += g.qty; k.cost += c; k.bought += g.qty; rows.push({...g, metal:k.metal, total:c, avgAfter:k.cost / k.qty}); }
+    const k = kinds[g.kind] || (kinds[g.kind] = {kind:g.kind, metal:metalOf(g), qty:0, cost:0, realized:0, bought:0, sold:0, at:{}});
+    const pk = placeKey(g.place);
+    if (g.type === 'buy') { const c = g.qty * g.price + (g.fee || 0); k.qty += g.qty; k.cost += c; k.bought += g.qty; const a = k.at[pk] || (k.at[pk] = {place:pk, qty:0, cost:0}); a.qty += g.qty; a.cost += c; rows.push({...g, metal:k.metal, total:c, avgAfter:k.cost / k.qty}); }
     else { const avg = k.qty ? k.cost / k.qty : 0; const q = Math.min(g.qty, k.qty); const basis = avg * q; const proceeds = g.qty * g.price - (g.fee || 0);
+      // trừ số đang giữ: ưu tiên nơi bán, còn thiếu thì trừ nơi đang giữ nhiều nhất
+      let left = q; const take = a => { const t = Math.min(left, a.qty); if (t > 0) { a.cost -= a.cost / a.qty * t; a.qty -= t; left -= t; } };
+      if (k.at[pk]) take(k.at[pk]); Object.values(k.at).sort((x, y) => y.qty - x.qty).forEach(a => { if (left > 1e-9) take(a); });
       const gain = proceeds - basis; k.realized += gain; k.qty -= q; k.cost -= basis; if (k.qty < 1e-6) { k.qty = 0; k.cost = 0; } k.sold += q;
       rows.push({...g, metal:k.metal, total:proceeds, avgAt:avg, gain, avgAfter:k.qty ? k.cost / k.qty : 0}); }
   }
-  for (const k of Object.values(kinds)) { const pr = S.goldPrice[k.kind]; k.avg = k.qty ? k.cost / k.qty : 0; k.price = pr ? pr.price : 0; k.priceDate = pr ? pr.date : ''; k.value = k.price * k.qty; k.unreal = k.price ? k.value - k.cost : null; }
+  for (const k of Object.values(kinds)) {
+    k.avg = k.qty ? k.cost / k.qty : 0;
+    // Giữ ở từng nơi: giá trị = số lượng × giá nơi đó; nơi chưa có giá tính theo giá vốn
+    k.held = Object.values(k.at).filter(a => a.qty > 1e-6).map(a => ({...a, avg:a.cost / a.qty, price:effPrice(k.kind, a.place), date:effDate(k.kind, a.place)}));
+    const pv = k.held.filter(a => a.price); const pq = pv.reduce((s, a) => s + a.qty, 0);
+    k.partial = pv.length > 0 && pv.length < k.held.length;
+    k.value = pv.reduce((s, a) => s + a.qty * a.price, 0) + (k.qty - pq) * k.avg;
+    k.price = pq ? pv.reduce((s, a) => s + a.qty * a.price, 0) / pq : 0; // giá nay trung bình theo số đang giữ
+    k.priceDate = pv.map(a => a.date).sort().pop() || '';
+    k.unreal = k.price ? k.value - k.cost : null;
+  }
   return {kinds, rows};
 }
 const heldTxt = ks => ['gold', 'silver'].map(m => { const q = ks.filter(k => k.metal === m).reduce((s, k) => s + k.qty, 0); return q ? `${METAL[m].name} ${qtyTxt(q, m)}` : ''; }).filter(Boolean).join(' · ');
@@ -2300,7 +2328,7 @@ function renderGold(){
   $('#goldKinds').innerHTML = order.length ? order.map(k => { const M = METAL[k.metal];
     const plTxt = !k.qty ? `<b style="color:${k.realized >= 0 ? 'var(--in)' : 'var(--out)'}">${k.realized >= 0 ? 'Lời' : 'Lỗ'} ${shortMoney(Math.abs(k.realized))}</b><small>đã bán hết</small>`
       : k.unreal === null ? `<b style="color:var(--h)">Chưa có giá</b><small>bấm để nhập giá nay</small>`
-      : `<b style="color:${k.unreal >= 0 ? 'var(--in)' : 'var(--out)'}">${k.unreal >= 0 ? 'Lời' : 'Lỗ'} ${shortMoney(Math.abs(k.unreal))}</b><small>${pct1(k.unreal, k.cost)} nếu bán nay</small>`;
+      : `<b style="color:${k.unreal >= 0 ? 'var(--in)' : 'var(--out)'}">${k.unreal >= 0 ? 'Lời' : 'Lỗ'} ${shortMoney(Math.abs(k.unreal))}</b><small>${k.partial ? 'có nơi chưa nhập giá' : `${pct1(k.unreal, k.cost)} nếu bán nay`}</small>`;
     return `<button class="gk" data-gact="kind|${esc(k.kind)}">
       <span class="gh"><span class="cic" style="background:color-mix(in srgb,${M.tint} 30%,transparent)">${M.ic}</span><span class="gn">${esc(k.kind)}</span><span class="gp">${plTxt}</span></span>
       <span class="gs"><span>Đang giữ<b>${k.qty ? qtyTxt(k.qty, k.metal) : '0'}</b></span><span>Giá mua 1 ${M.unitName}<b>${k.qty ? shortMoney(k.avg * M.unit) : '—'}</b></span><span>Tổng tiền bỏ ra<b>${k.qty ? shortMoney(k.cost) : '—'}</b></span></span></button>`; }).join('')
@@ -2308,11 +2336,11 @@ function renderGold(){
   const places = {};
   S.gold.filter(g => g.type === 'buy').forEach(g => { const key = g.place + '|' + g.kind; const x = places[key] || (places[key] = {place:g.place, kind:g.kind, metal:metalOf(g), qty:0, cost:0}); x.qty += g.qty; x.cost += g.qty * g.price + (g.fee || 0); });
   const pl2 = Object.values(places).sort((a, b) => (a.metal === b.metal ? b.cost - a.cost : a.metal === 'gold' ? -1 : 1));
-  $('#goldPlaces').innerHTML = pl2.length ? `<div class="card"><h3>Giá mua theo từng nơi</h3>${pl2.map(x => { const avg = x.cost / x.qty; const cur = (kinds[x.kind] || {}).price;
+  $('#goldPlaces').innerHTML = pl2.length ? `<div class="card"><h3>Giá mua theo từng nơi</h3>${pl2.map(x => { const avg = x.cost / x.qty; const cur = effPrice(x.kind, x.place);
     return `<div class="srow" style="grid-template-columns:1fr auto"><span class="d"><b>${esc(x.place || 'Không rõ nơi')}</b><small>${esc(x.kind)} · ${qtyTxt(x.qty, x.metal)}</small></span><span class="a">${perU(avg, x.metal)}<small>${cur ? `so với giá nay ${pct1(cur - avg, avg)}` : 'giá TB đã gồm phí'}</small></span></div>`; }).join('')}</div>` : '';
   const hist = rows.slice().reverse();
   $('#goldHist').innerHTML = hist.length ? `<div class="sec" style="margin-top:6px"><h3>Lịch sử mua bán</h3><span class="muted" style="font-size:12px;font-weight:700">tạm tính theo giá nay</span></div><div class="list">${hist.map(g => { const k = kinds[g.kind]; const M = METAL[g.metal];
-    const sub = g.type === 'buy' ? (k && k.price ? `tạm tính ${pl((k.price - g.price) * g.qty - (g.fee || 0))}` : '') : `đã chốt ${pl(g.gain)}`;
+    const ep = effPrice(g.kind, g.place); const sub = g.type === 'buy' ? (ep ? `tạm tính ${pl((ep - g.price) * g.qty - (g.fee || 0))}` : '') : `đã chốt ${pl(g.gain)}`;
     return `<button class="tx" data-gact="edit|${g.id}"><span class="cic" style="background:${g.type === 'buy' ? `color-mix(in srgb,${M.tint} 30%,transparent)` : 'color-mix(in srgb,#1F9D6B 18%,transparent)'}">${g.type === 'buy' ? M.ic : '💰'}</span><span class="main"><div class="t1">${g.type === 'buy' ? 'Mua' : 'Bán'} ${qtyTxt(g.qty, g.metal)} · ${esc(g.place || 'không rõ nơi')}</div><div class="t2">${dM(g.date)}/${g.date.slice(2, 4)} · ${esc(g.note || g.kind)}</div></span><span class="amt" style="color:var(--ink);text-align:right">${shortMoney(g.total)}<div class="t2">${sub}</div></span></button>`; }).join('')}</div>` : '';
 }
 function openKind(kind){
@@ -2321,8 +2349,9 @@ function openKind(kind){
   sheet(`<div class="lh" style="display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:center;margin-bottom:12px"><span class="cic" style="width:44px;height:44px;background:color-mix(in srgb,${M.tint} 30%,var(--card))">${M.ic}</span><span><b style="font-size:18px;font-weight:900">${esc(kind)}</b><small style="display:block;color:var(--muted);font-weight:700">${M.name}</small></span></div>
     ${k.qty && k.unreal !== null ? `<div class="due ${k.unreal < 0 ? 'late' : ''}" style="padding:12px 14px"><span>Nếu bán hôm nay${k.priceDate ? ` (giá ${dM(k.priceDate)})` : ''}</span><span style="font-size:18px">${pl(k.unreal)} <small class="muted">${pct1(k.unreal, k.cost)}</small></span></div>` : ''}
     <div class="kv"><span>Đang giữ</span><b>${qtyTxt(k.qty, k.metal)}</b><span>Giá vốn trung bình</span><b>${k.qty ? perU(k.avg, k.metal) : '—'}</b><span>Tổng vốn</span><b>${money(k.cost)}</b>
-      <span>Giá tiệm mua vào hôm nay</span><b>${k.price ? perU(k.price, k.metal) : 'chưa nhập'}</b>${k.price && k.qty ? `<span>Giá trị nếu bán</span><b>${money(k.value)}</b>` : ''}${k.realized ? `<span>Đã chốt khi bán</span><b style="color:${k.realized >= 0 ? 'var(--in)' : 'var(--out)'}">${k.realized >= 0 ? '+' : '−'}${fmt(Math.abs(k.realized))} đ</b>` : ''}</div>
-    <div class="grid2" style="grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px"><button class="btn pri" data-sa="buy">Mua thêm</button><button class="btn" data-sa="sell"${k.qty ? '' : ' disabled style="opacity:.4"'}>Bán</button><button class="btn" data-sa="price">Cập nhật giá</button></div>
+      ${k.price && k.qty ? `<span>Giá trị nếu bán</span><b>${money(k.value)}</b>` : ''}${k.realized ? `<span>Đã chốt khi bán</span><b style="color:${k.realized >= 0 ? 'var(--in)' : 'var(--out)'}">${k.realized >= 0 ? '+' : '−'}${fmt(Math.abs(k.realized))} đ</b>` : ''}</div>
+    ${k.held.length ? `<div class="subh">ĐANG GIỮ THEO NƠI</div>${k.held.map(a => { const g = a.price ? a.qty * (a.price - a.avg) : null; return `<div class="srow" style="grid-template-columns:1fr auto"><span class="d"><b>${esc(a.place || 'Không rõ nơi')}</b><small>${qtyTxt(a.qty, k.metal)} · vốn ${perU(a.avg, k.metal)}</small></span><span class="a">${a.price ? perU(a.price, k.metal) : '<span style="color:var(--h)">chưa có giá</span>'}<small>${g === null ? 'bấm Cập nhật giá' : `${g >= 0 ? 'lời' : 'lỗ'} ${shortMoney(Math.abs(g))}${a.date ? ` · giá ${dM(a.date)}` : ''}`}</small></span></div>`; }).join('')}` : ''}
+    <div class="grid2" style="grid-template-columns:1fr 1fr 1fr;gap:6px;margin:10px 0 6px"><button class="btn pri" data-sa="buy">Mua thêm</button><button class="btn" data-sa="sell"${k.qty ? '' : ' disabled style="opacity:.4"'}>Bán</button><button class="btn" data-sa="price">Cập nhật giá</button></div>
     <div class="subh">CÁC LẦN MUA BÁN</div>${hist.map(g => `<div class="srow" style="grid-template-columns:1fr auto"><span class="d">${g.type === 'buy' ? 'Mua' : 'Bán'} ${qtyTxt(g.qty, g.metal)} · ${esc(g.place || 'không rõ nơi')}<small>${dmy(g.date)} · ${perU(g.price, g.metal)}${g.note ? ` · ${esc(g.note)}` : ''}</small></span><span class="a">${shortMoney(g.total)}</span></div>`).join('')}
     <button class="btn" data-sa="close" style="margin-top:12px">Đóng</button>`,
   a => { if (a === 'buy' || a === 'sell') openGoldForm(null, a, kind); if (a === 'price') openGoldPrice(kind); });
@@ -2394,16 +2423,24 @@ function openGoldForm(id, type, kind){
   dl();
   $('#layer').oninput = prev; $('#layer').onchange = prev; prev();
 }
+// Giá hôm nay nhập riêng cho từng nơi đang giữ (mỗi tiệm mua lại một giá khác nhau)
 function openGoldPrice(kind){
-  const cur = S.goldPrice[kind]; const m = metalOf(kind); const u0 = METAL[m].unit;
+  const k = goldCalc().kinds[kind]; const m = metalOf(kind); const u0 = METAL[m].unit;
+  const places = k && k.held.length ? k.held.map(a => a.place) : [''];
+  const cur = p => { const g = S.goldPrice[kind] || {}; const pp = g.places && g.places[p]; return pp && pp.price ? pp.price : 0; };
+  const shared = (S.goldPrice[kind] || {}).price || 0;
   sheet(`<h2>Giá hôm nay · ${esc(kind)}</h2>
-    <p class="note pretty">Nhập giá tiệm <b>mua vào</b> (giá bạn bán được), xem trên bảng giá của ${m === 'silver' ? 'Phú Quý, Ancarat, DOJI' : 'SJC, PNJ, DOJI'} hoặc tiệm quen.</p>
-    <div class="grid2"><label class="field"><span id="qPl">Giá 1 ${unitName(u0)}</span><input class="inp money" id="qP" inputmode="numeric" value="${cur ? fmt(Math.round(cur.price * u0)) : ''}" placeholder="0"></label>
-    <label class="field"><span>Đơn vị</span><select class="inp" id="qU">${UNITS.map(([v, n]) => `<option value="${v}"${Number(v) === u0 ? ' selected' : ''}>${n}</option>`).join('')}</select></label></div>
+    <p class="note pretty">Nhập giá <b>mua vào</b> của từng tiệm (giá bạn bán lại được ở tiệm đó). Mỗi tiệm một giá khác nhau.</p>
+    <label class="field"><span>Đơn vị giá</span><select class="inp" id="qU">${UNITS.map(([v, n]) => `<option value="${v}"${Number(v) === u0 ? ' selected' : ''}>${n}</option>`).join('')}</select></label>
+    ${places.map((p, i) => { const a = k && k.held.find(x => x.place === p); return `<label class="field"><span><b style="color:var(--ink)">${esc(p || 'Không rõ nơi')}</b>${a ? ` · đang giữ ${qtyTxt(a.qty, m)}` : ''} · <span class="qul">giá 1 ${unitName(u0)}</span></span><input class="inp money" data-qp="${i}" inputmode="numeric" value="${cur(p) ? fmt(Math.round(cur(p) * u0)) : ''}" placeholder="${shared ? `đang dùng giá chung ${fmt(Math.round(shared * u0))}` : '0'}"></label>`; }).join('')}
     <div class="grid2"><button class="btn" data-sa="close">Hủy</button><button class="btn pri" data-sa="save">Lưu</button></div>`,
-  a => { if (a !== 'save') return; const u = Number($('#qU').value); const pr = Math.round(parseMoney($('#qP').value) / u); if (!pr) { toast('Nhập giá'); return; }
-    S.goldPrice[kind] = {price:pr, date:today()}; save(); closeSheet(); render(); });
-  $('#layer').onchange = () => { $('#qPl').textContent = `Giá 1 ${unitName($('#qU').value)}`; };
+  a => { if (a !== 'save') return; const u = Number($('#qU').value);
+    const vals = $$('[data-qp]').map(el => Math.round(parseMoney(el.value) / u));
+    if (!vals.some(Boolean)) { toast('Nhập giá cho ít nhất một nơi'); return; }
+    const g = S.goldPrice[kind] = S.goldPrice[kind] || {}; g.places = g.places || {};
+    places.forEach((p, i) => { if (vals[i]) g.places[p] = {price:vals[i], date:today()}; else delete g.places[p]; });
+    save(); closeSheet(); render(); toast(`Đã lưu giá ${vals.filter(Boolean).length} nơi`); });
+  $('#layer').onchange = () => { $$('#layer .qul').forEach(el => el.textContent = `giá 1 ${unitName($('#qU').value)}`); };
 }
 
 /* ================= SỔ TIẾT KIỆM ================= */
@@ -2481,13 +2518,22 @@ function openCloseSaving(id){
 
 /* ================= TÀI SẢN KHÁC ================= */
 const ATYPES = {bank:['💳', 'Tài khoản ngân hàng', '#3B82F6'], cash:['💵', 'Tiền mặt', '#22A06B', 'luong'], stock:['📈', 'Chứng khoán', '#8B5CF6', 'dau-tu'], fund:['🧺', 'Chứng chỉ quỹ', '#6366F1', 'dau-tu'], realestate:['🏠', 'Bất động sản', '#F97316', 'nha-o'], vehicle:['🚗', 'Xe cộ', '#06B6D4', 'di-lai'], receivable:['🤝', 'Cho người khác vay', '#14B8A6'], other:['📦', 'Tài sản khác', '#64748B', 'khac']};
+// Giá trị dùng để tính: giá trị hiện tại; chưa nhập thì tạm tính theo giá mua
+const assetVal = a => a.value || a.cost || 0;
 function renderAssets(){
   const groups = Object.keys(ATYPES).map(t => [t, S.assets.filter(a => a.type === t)]).filter(([, l]) => l.length);
   const hasBank = S.assets.some(a => a.type === 'bank');
-  $('#assetList').innerHTML = (groups.length ? groups.map(([t, l]) => `<div class="day"><span>${ATYPES[t][1]}</span><span class="num">${shortMoney(l.reduce((s, a) => s + (a.value || 0), 0))}</span></div><div class="list">${l.map(a => { const old = a.updated && daysTo(a.updated) < -30;
-    return `<button class="tx" data-as="${a.id}"><span class="cic" style="background:color-mix(in srgb,${ATYPES[t][2]} 14%,transparent)">${atIc(ATYPES[t])}</span><span class="main"><div class="t1">${esc(a.name)}</div><div class="t2" style="${old ? 'color:var(--h)' : ''}">${a.cost ? `Mua ${shortMoney(a.cost)}${a.bought ? ` · ${dmy(a.bought)}` : ''}` : a.updated ? `${old ? 'Lâu chưa cập nhật · ' : 'Cập nhật '}${dmy(a.updated)}` : 'Chưa nhập giá trị'}${a.note && !a.cost ? ` · ${esc(a.note)}` : ''}</div></span><span class="amt" style="color:var(--ink);text-align:right">${hid(fmt(a.value || 0))} đ${a.cost ? `<div class="t2">${a.value === a.cost ? 'bằng giá mua' : pl(a.value - a.cost)}</div>` : ''}</span></button>`; }).join('')}</div>`).join('')
+  const tot = S.assets.reduce((x, a) => x + assetVal(a), 0);
+  const wc = S.assets.filter(a => a.cost && a.value); const gain = wc.reduce((x, a) => x + a.value - a.cost, 0);
+  const est = S.assets.filter(a => !a.value && a.cost).length;
+  const sum = S.assets.length ? `<div class="lsum asum"><div>Tổng tài sản khác · ${S.assets.length} khoản</div><div class="big2 num">${hid(fmt(tot))} đ</div>${wc.length ? `<div class="sub">${gain >= 0 ? '▲ Tăng' : '▼ Giảm'} ${shortMoney(Math.abs(gain))} so với giá mua</div>` : ''}${est ? `<div class="sub">${est} khoản tạm tính theo giá mua</div>` : ''}</div>` : '';
+  const card = (a, t) => { const old = a.updated && daysTo(a.updated) < -30; const noVal = !a.value && a.cost;
+    const sub = a.cost ? `${old ? 'Lâu chưa cập nhật · ' : ''}Mua ${shortMoney(a.cost)}${a.bought ? ` · ${dmy(a.bought)}` : ''}` : a.updated ? `${old ? 'Lâu chưa cập nhật · ' : 'Cập nhật '}${dmy(a.updated)}` : 'Chưa nhập giá trị';
+    const right = noVal ? `<small style="color:var(--h)">tính theo giá mua</small>` : a.cost ? `<small>${a.value === a.cost ? 'bằng giá mua' : pl(a.value - a.cost)}</small>` : '';
+    return `<button class="acard" data-as="${a.id}"><span class="cic" style="background:color-mix(in srgb,${ATYPES[t][2]} 16%,var(--card))">${atIc(ATYPES[t])}</span><span><span class="n">${esc(a.name)}</span><span class="s" style="${old || noVal ? 'color:var(--h)' : ''}">${noVal ? 'Chưa cập nhật giá trị · bấm để nhập' : sub}${a.note && !a.cost ? ` · ${esc(a.note)}` : ''}</span>${noVal ? `<span class="s">${sub}</span>` : ''}</span><span class="v num">${hid(shortMoney(assetVal(a)))}${right}</span></button>`; };
+  $('#assetList').innerHTML = sum + (groups.length ? groups.map(([t, l]) => `<div class="day"><span>${ATYPES[t][1]}</span><span class="num">${hid(shortMoney(l.reduce((x, a) => x + assetVal(a), 0)))}</span></div>${l.map(a => card(a, t)).join('')}`).join('')
     : `<div class="empty pretty">Chưa có tài sản nào. Thêm số dư tài khoản, tiền mặt, chứng khoán, nhà, xe… để app tính tổng tài sản.</div>`)
-    + (hasBank ? '' : `<button class="btn" data-quickbanks="1" style="margin:12px 0 10px">💳 Thêm nhanh ${S.settings.funds.length} tài khoản quỹ (${S.settings.funds.slice(0, 3).map(f => f.bank).join(', ')}…)</button>`);
+    + (hasBank ? '' : `<button class="btn" data-quickbanks="1" style="margin:12px 0 10px">💳 Thêm nhanh ${S.settings.funds.length} tài khoản quỹ</button>`);
 }
 function quickBanks(){
   S.settings.funds.forEach(f => S.assets.push({id:uid(), type:'bank', name:`${f.key} – ${f.bank}`, value:0, updated:'', note:'', hist:[]}));
@@ -2522,7 +2568,7 @@ const NWG = {bank:ATYPES.bank, cash:ATYPES.cash, saving:['🐷', 'Sổ tiết ki
 const NWSEG = {saving:'save', gold:'gold', silver:'gold'};
 function netWorth(){
   const g = {}; const add = (k, v) => { if (v) g[k] = (g[k] || 0) + v; };
-  S.assets.forEach(a => add(a.type, a.value || 0));
+  S.assets.forEach(a => add(a.type, assetVal(a)));
   S.savings.filter(v => !v.closed).forEach(v => add('saving', saveState(v).value));
   let noPrice = false;
   Object.values(goldCalc().kinds).forEach(k => { if (k.qty > 0) { if (!k.price) noPrice = true; add(k.metal, k.price ? k.value : k.cost); } });
@@ -3066,7 +3112,7 @@ async function exportExcel(year, opts = {}){
     if (S.assets.length) {
       r++; aw.getCell(r, 1).value = 'TÀI SẢN KHÁC'; aw.getCell(r, 1).font = {bold:true, size:12}; r++;
       hdr(r, ['LOẠI', 'TÊN', 'GIÁ TRỊ HIỆN TẠI', 'NGÀY CẬP NHẬT', 'GIÁ MUA', 'NGÀY MUA', 'LÃI/LỖ SO VỚI GIÁ MUA', 'GHI CHÚ']); r++;
-      S.assets.forEach(a => { [ATYPES[a.type][1], a.name, a.value || 0, dmy(a.updated), a.cost || null, dmy(a.bought), a.cost ? {formula:`C${r}-E${r}`, result:(a.value || 0) - a.cost} : null, a.note || ''].forEach((val, c) => aw.getCell(r, c + 1).value = val); [3, 5, 7].forEach(c => aw.getCell(r, c).numFmt = mf); r++; });
+      S.assets.forEach(a => { [ATYPES[a.type][1], a.name, assetVal(a), dmy(a.updated), a.cost || null, dmy(a.bought), a.cost ? {formula:`C${r}-E${r}`, result:assetVal(a) - a.cost} : null, a.note || ''].forEach((val, c) => aw.getCell(r, c + 1).value = val); [3, 5, 7].forEach(c => aw.getCell(r, c).numFmt = mf); r++; });
     }
     [30, 22, 16, 14, 14, 13, 14, 14, 16, 16, 30, 26].forEach((wd, k) => aw.getColumn(k + 1).width = wd);
   }
