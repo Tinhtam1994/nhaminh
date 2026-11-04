@@ -1,5 +1,5 @@
 // Nhà Mình – service worker: chạy offline, tự cập nhật ở lần mở sau
-const CACHE = 'nha-minh-v1793632444';
+const CACHE = 'nha-minh-v1793763835';
 const SHELL = ['./', './index.html', './exceljs.min.js', './manifest.webmanifest', './apple-touch-icon.png', './icon-192.png', './icon-512.png', ...['an-uong','con-cai','dich-vu-sinh-hoat','di-lai','qua-tang','mua-sam','y-te','giao-duc','giai-tri','nha-o','hoa-don','tiet-kiem','du-lich','luong','dau-tu','lam-dep','thu-cung','the-thao','cong-viec','khac'].map(s => './icons/' + s + '.webp')];
 
 self.addEventListener('install', e => {

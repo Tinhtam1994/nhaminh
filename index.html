@@ -3514,6 +3514,21 @@ function flowData(){
       tip:(r, i) => { const pv = rows[i - 1]; const ch = pv && pv.s.all && r.s.all ? Math.round((r.s.all / pv.s.all - 1) * 100) : null;
         return `<b>${mLabel(r.key)}: ${r.s.all ? shortMoney(r.s.all) : 'không có chi'}</b>${ch !== null ? ` <span class="fl-ch ${ch > 0 ? 'up' : 'dn'}">${ch > 0 ? '▲' : '▼'} ${Math.abs(ch)}% so với tháng trước</span>` : ''}${r.s.all ? `<div>${lvLine(r.s)}</div>` : ''}`; }};
   }
+  if (flowSeg === 'week') {
+    // 12 tuần (thứ Hai – Chủ nhật) tính tới tuần chứa ngày cuối của tháng đang xem, hoặc tuần này nếu đang xem tháng này
+    const [y, mo] = curM.split('-').map(Number), endM = `${curM}-${pad(daysIn(y, mo))}`, anchor = endM < now ? endM : now;
+    const ad = new Date(anchor + 'T00:00:00'), mon0 = addDays(anchor, -((ad.getDay() + 6) % 7));
+    const rows = Array.from({length:12}, (_, i) => { const a = addDays(mon0, (i - 11) * 7), b = addDays(a, 6); const list = S.tx.filter(t => t.date >= a && t.date <= b);
+      return {key:a, end:b, lab:dM(a), s:sumOf(list), list, part:b > now, fut:a > now}; });
+    const done = rows.filter(r => !r.part && r.s.all), avg = done.length ? done.reduce((x, r) => x + r.s.all, 0) / done.length : 0, cur = rows[11];
+    const mx = rows.reduce((x, r) => r.s.all > x.s.all ? r : x, {s:{all:0}});
+    const nd = cur.part ? dBetween(cur.key, now) + 1 : 7, d = avg && cur.s.all ? Math.round((cur.s.all / (avg * nd / 7) - 1) * 100) : null; // tuần đang diễn ra: so với trung bình của cùng số ngày
+    return {rows, avg, avgLab:`TB ${shortMoney(avg)}/tuần`, tick:(r, i) => i % 3 === 2 || i === 11, now:mon0,
+      head:rows.some(r => r.s.all) ? `Trung bình <b>${shortMoney(avg)}/tuần</b> · nhiều nhất tuần <b>${dM(mx.key)}</b> (${shortMoney(mx.s.all)})${d !== null ? ` · ${cur.part ? `tuần này ${nd} ngày đầu chi ${shortMoney(cur.s.all)},` : `tuần ${dM(cur.key)}`} <b>${d >= 0 ? 'cao hơn' : 'thấp hơn'} ${Math.abs(d)}%</b>${cur.part ? ' so với cùng số ngày' : ''}` : ''}` : 'Chưa có khoản chi nào trong 12 tuần này',
+      tip:(r, i) => { const pv = rows[i - 1]; const ch = pv && pv.s.all && r.s.all && !r.part ? Math.round((r.s.all / pv.s.all - 1) * 100) : null;
+        const top = r.list.slice().sort((a, b) => b.amount - a.amount).slice(0, 2).map(t => `${esc(t.detail)} ${shortMoney(t.amount)}`).join(', ');
+        return `<b>Tuần ${dM(r.key)} – ${dM(r.end)}: ${r.s.all ? shortMoney(r.s.all) : 'không có chi'}</b>${r.part ? ' <span class="fl-ch">đang diễn ra</span>' : ''}${ch !== null ? ` <span class="fl-ch ${ch > 0 ? 'up' : 'dn'}">${ch > 0 ? '▲' : '▼'} ${Math.abs(ch)}% so với tuần trước</span>` : ''}${r.s.all ? `<div>${lvLine(r.s)}</div>${top ? `<div class="fl-top">Lớn nhất: ${top}</div>` : ''}` : ''}`; }};
+  }
   // Theo thứ: trung bình mỗi ngày theo thứ trong 3 tháng gần nhất tính tới tháng đang xem (bỏ các ngày chưa tới)
   const from = shiftM(curM, -2) + '-01', [y, mo] = curM.split('-').map(Number), end = `${curM}-${pad(daysIn(y, mo))}`, to = end < now ? end : now;
   const acc = Array.from({length:7}, () => ({n:0, s:{G:0, H:0, I:0, all:0}}));
@@ -3536,7 +3551,7 @@ function renderFlow(){
   if (flowSel !== null && !rows[flowSel]) flowSel = null;
   const sel = flowSel !== null ? rows[flowSel] : null;
   el.innerHTML = `<div class="row between"><h3>Biến động chi tiêu</h3></div>
-    <div class="segment fl-seg" style="grid-template-columns:repeat(3,1fr)">${[['day', 'Theo ngày'], ['month', 'Theo tháng'], ['wd', 'Theo thứ']].map(([k, n]) => `<button data-fseg="${k}" class="${flowSeg === k ? 'on' : ''}">${n}</button>`).join('')}</div>
+    <div class="segment fl-seg" style="grid-template-columns:repeat(4,1fr)">${[['day', 'Theo ngày'], ['week', 'Theo tuần'], ['month', 'Theo tháng'], ['wd', 'Theo thứ']].map(([k, n]) => `<button data-fseg="${k}" class="${flowSeg === k ? 'on' : ''}">${n}</button>`).join('')}</div>
     <div class="fl-read pretty">${sel ? D.tip(sel, flowSel) : D.head}</div>
     <div class="fl-plot${sel ? ' has-sel' : ''}" style="--n:${rows.length}">
       ${D.avg ? `<div class="fl-avg" style="bottom:${D.avg / top * 100}%"></div>` : ''}
@@ -4582,7 +4597,7 @@ const ASK = [
     a:'Bấm <b>chuông 🔔</b> ở đầu Trang chủ để xem các thông báo mới và lịch sắp tới. Muốn chỉnh, vào <b>Cài đặt → Thông báo Mimi</b>: bấm <b>Bật thông báo</b>, chọn nhóm muốn nhận (nhắc ghi chép, cảnh báo chi tiêu, đến hạn, lương, tổng kết, sao lưu), đổi <b>giờ nhắc ghi chép</b> và <b>giờ yên lặng</b>. Bấm <b>Lịch 7 ngày tới</b> để xem trước Mimi sẽ nhắc gì. Đã ghi chép thì Mimi không nhắc, mỗi ngày tối đa 2 thông báo.',
     acts:[{t:'Mở cài đặt thông báo', f:() => goSet('#notifCard')}, {t:'Xem lịch 7 ngày tới', f:() => { go('set'); openMimiList('plan'); }}], rel:['alert', 'streak']},
   {id:'flow', q:'Xem biểu đồ chi tiêu theo ngày, tháng, thứ?', k:['bieu do', 'bien dong', 'theo ngay', 'theo thu', 'thu may', 'ngay nao chi nhieu', 'thu nao chi nhieu', 'cuoi tuan', 'xu huong', 'chart'],
-    a:'Vào <b>Giao dịch → Tổng quan</b>, thẻ <b>Biến động chi tiêu</b> có 3 tab: <b>Theo ngày</b> (từng ngày trong tháng), <b>Theo tháng</b> (12 tháng gần nhất) và <b>Theo thứ</b> (trung bình mỗi thứ trong 3 tháng). Cột chia màu theo Cần thiết, Nên có, Lãng phí; đường nét đứt là mức trung bình. Bấm vào một cột để xem chi tiết.',
+    a:'Vào <b>Giao dịch → Tổng quan</b>, thẻ <b>Biến động chi tiêu</b> có 4 tab: <b>Theo ngày</b> (từng ngày trong tháng), <b>Theo tuần</b> (12 tuần gần nhất, thứ Hai đến Chủ nhật), <b>Theo tháng</b> (12 tháng gần nhất) và <b>Theo thứ</b> (trung bình mỗi thứ trong 3 tháng). Cột chia màu theo Cần thiết, Nên có, Lãng phí; đường nét đứt là mức trung bình. Bấm vào một cột để xem chi tiết.',
     acts:[{t:'Mở biểu đồ', f:() => { txSeg = 'ov'; curM = curYm(); go('tx'); hl('#flowCard'); }}], rel:['stat', 'month']},
   {id:'month', q:'Xem chi tiêu tháng cũ, năm trước ở đâu?', k:['thang cu', 'thang truoc', 'nam truoc', 'nam ngoai', 'nam 2024', 'nam 2025', 'chon thang', 'doi thang', 'xem thang', 'chi co thang', 'mat thang', 'khong thay thang', 'du lieu cu'],
     a:'Vào <b>Giao dịch</b>, bấm vào <b>chữ tháng</b> ở giữa hai mũi tên (vd: “Tháng 10, 2024 ▾”). App hiện các tháng có dữ liệu theo từng năm, kèm số khoản và tổng chi. Bấm vào tháng muốn xem. Muốn quay lại, bấm <b>Về tháng này</b>.',
